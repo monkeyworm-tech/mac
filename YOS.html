@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS Setup & Desktop</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-window: #ffffff;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --bg-sidebar: rgba(240, 240, 240, 0.75);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --taskbar-bg: rgba(40, 40, 40, 0.4);
+            --titlebar-bg: #f6f6f6;
+            --titlebar-border: #e0e0e0;
+            --input-bg: #fafafa;
+            --input-border: #ccc;
+            --accent-color: #007aff;
+            --accent-tint-taskbar: var(--taskbar-bg);
+            --accent-tint-titlebar: var(--titlebar-bg);
+        }
+
+        .theme-dark {
+            --bg-window: #1e1e1e;
+            --text-main: #f5f5f5;
+            --text-sub: #aaaaaa;
+            --bg-sidebar: rgba(40, 40, 40, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --taskbar-bg: rgba(20, 20, 20, 0.6);
+            --titlebar-bg: #2d2d2d;
+            --titlebar-border: #3d3d3d;
+            --input-bg: #2a2a2a;
+            --input-border: #555;
+        }
+
+        .theme-dark .window-titlebar {
+            background-color: var(--accent-tint-titlebar, var(--titlebar-bg)) !important;
+            border-bottom-color: var(--titlebar-border) !important;
+        }
+
+        body {
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        #os-status-bar {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 24px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 2000;
+            pointer-events: none;
+            color: #ffffff;
+            transition: color 0.2s ease;
+        }
+        #os-status-bar.on-light { color: #000000; }
+        #os-status-bar .status-left, #os-status-bar .status-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            pointer-events: auto;
+            height: 100%;
+        }
+        .status-os-name { font-weight: 600; font-size: 14px; }
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            margin: -14px;
+            cursor: pointer;
+        }
+        .status-wifi svg { width: 18px; height: 14px; fill: currentColor; pointer-events: none; }
+        .status-vpn {
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 10px;
+            font-weight: bold;
+            display: none;
+            pointer-events: none;
+        }
+        .status-cc svg { width: 18px; height: 18px; fill: currentColor; pointer-events: none; }
+        .status-battery {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            pointer-events: none;
+        }
+        .battery-icon {
+            width: 24px; height: 12px;
+            border: 1px solid currentColor;
+            border-radius: 3px; padding: 1px;
+            position: relative; display: flex; align-items: center;
+        }
+        .battery-icon::after {
+            content: ''; position: absolute; right: -3px; top: 3px;
+            width: 2px; height: 4px; background: currentColor;
+            border-radius: 0 2px 2px 0;
+        }
+        .battery-fill { height: 100%; background: currentColor; border-radius: 1px; transition: width 0.3s, background-color 0.3s; }
+        .charging .battery-fill { background-color: #34c759 !important; }
+        .battery-bolt {
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px; color: #ffffff;
+            text-shadow: 0 0 2px rgba(0,0,0,0.5); display: none;
+        }
+        .charging .battery-bolt { display: block; }
+        .status-clock-date { display: flex; gap: 8px; font-size: 13px; font-weight: 500; pointer-events: none; }
+
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000000; display: flex;
+            justify-content: center; align-items: center;
+            z-index: 10000; transition: opacity 1s ease-in-out;
+        }
+        .apple-logo { width: 80px; height: 80px; opacity: 0; animation: fadeInLogo 2s forwards ease-in-out; animation-delay: 0.5s; }
+        .apple-logo path { fill: #ffffff; }
+
+        .wizard-container {
+            width: 100%; max-width: 400px; padding: 2rem;
+            display: none; flex-direction: column; align-items: center;
+            text-align: center; position: relative; min-height: 450px;
+            transition: opacity 1s ease-in-out; z-index: 10; color: #333333;
+        }
+        .wizard-container.loaded { display: flex; opacity: 1; }
+        h1 { font-size: 2.5rem; font-weight: 300; margin-bottom: 2rem; letter-spacing: -0.5px; }
+        .step-card { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeInStep 0.4s ease-in-out; }
+        .step-card.active { display: flex; }
+        .input-group { width: 100%; margin-bottom: 1.5rem; text-align: left; }
+        label { display: block; font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 12px 16px; border: 1px solid var(--input-border);
+            border-radius: 8px; font-size: 1rem; outline: none;
+            transition: border-color 0.2s; background: var(--input-bg);
+            color: var(--text-main); user-select: text;
+        }
+        .wizard-container input[type="text"], .wizard-container input[type="password"] { background: #fafafa; color: #333333; border: 1px solid #ccc; }
+        input:focus { border-color: var(--accent-color); }
+        .btn-submit {
+            background-color: var(--accent-color); color: white; border: none;
+            padding: 12px 24px; font-size: 1rem; border-radius: 20px;
+            cursor: pointer; width: 100%; max-width: 200px;
+            transition: opacity 0.3s ease; opacity: 0; pointer-events: none; margin-top: 0.5rem;
+        }
+        .btn-submit.visible { opacity: 1; pointer-events: auto; }
+        .avatar-placeholder {
+            width: 120px; height: 120px; border-radius: 50%;
+            background-color: #e5e5ea; border: 2px dashed #b5b5b9;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 1rem; cursor: pointer; overflow: hidden; position: relative;
+        }
+        .avatar-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-placeholder span { font-size: 2.5rem; color: #8e8e93; }
+        #file-input, .pane-file-input { display: none; }
+        .dots-container { display: flex; gap: 8px; position: absolute; bottom: 10px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background-color: #d1d1d6; transition: background-color 0.3s; }
+        .dot.active { background-color: #000000; }
+
+        #prep-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000000; display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9998;
+            opacity: 0; transition: opacity 1s ease-in-out; color: #ffffff;
+        }
+        .prep-text { font-size: 1.5rem; font-weight: 300; margin-bottom: 2rem; letter-spacing: 0.5px; }
+
+        #lock-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: none; z-index: 100; cursor: pointer; transition: opacity 1s ease-in-out;
+        }
+        .lock-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 1s ease-in-out; z-index: 0;
+        }
+        .lock-bg.active { opacity: 1; }
+        #lock-content {
+            position: absolute; top: 10%; left: 0; width: 100%;
+            text-align: center; color: white; z-index: 10;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .clock { font-size: 8rem; font-weight: 100; }
+        #login-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+            z-index: 20; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+        }
+        #login-overlay.active { opacity: 1; pointer-events: auto; }
+        .login-card { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; cursor: default; }
+        .login-avatar { width: 150px; height: 150px; border-radius: 50%; background-color: #e5e5ea; border: 4px solid white; overflow: hidden; margin-bottom: 1rem; }
+        .login-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .login-username { font-size: 2rem; margin-bottom: 2rem; }
+        .login-input-group { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        #login-password { width: 100%; padding: 12px 16px; background: transparent; border: 2px solid white; border-radius: 8px; color: white; font-size: 1rem; outline: none; user-select: text; }
+        .btn-signin { width: 100%; padding: 12px; background-color: white; color: black; border: none; border-radius: 25px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        #login-error { color: #ff4d4d; margin-top: 0.5rem; display: none; }
+        .welcome-msg { font-size: 3rem; margin-bottom: 2rem; display: none; }
+        .white-spinner { width: 40px; height: 40px; border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #ffffff; animation: spin 1s ease-in-out infinite; margin-top: 10px; }
+
+        #desktop {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-size: cover; background-position: center; z-index: 5; display: none;
+        }
+
+        .desktop-grid {
+            position: absolute; top: 20px; left: 20px; right: 20px; bottom: 90px;
+            display: grid; grid-template-columns: repeat(auto-fill, 90px);
+            grid-template-rows: repeat(auto-fill, 105px); grid-auto-flow: column;
+            gap: 15px; pointer-events: none;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+        body.expose-active .desktop-grid { transform: translateX(-150%); opacity: 0; pointer-events: none; }
+
+        .desktop-item-container {
+            width: 90px; height: 105px; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start; pointer-events: auto;
+            position: absolute; cursor: pointer;
+            transition: left 0.3s cubic-bezier(0.2, 1, 0.2, 1), top 0.3s cubic-bezier(0.2, 1, 0.2, 1);
+        }
+        .desktop-item-container.dragging { transition: none !important; z-index: 1000; }
+        .desktop-item-container.snapping { transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1), top 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        .desktop-app-label { margin-top: 6px; font-size: 0.75rem; color: #ffffff; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; }
+
+        .task-bar {
+            position: absolute; bottom: 12px; left: 12px; right: 12px; height: 64px;
+            background-color: var(--accent-tint-taskbar); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px; display: flex; align-items: center; justify-content: flex-start;
+            gap: 12px; padding: 0 16px; z-index: 1000;
+            transition: transform 0.3s ease-in-out, bottom 0.3s ease-in-out, background-color 0.3s;
+        }
+        body.expose-active .task-bar { transform: translateY(150%); }
+        .theme-light-active .task-bar { background-color: var(--accent-tint-taskbar); border: 1px solid rgba(0, 0, 0, 0.15); }
+        .task-bar.fullscreen-hidden { transform: translateY(80px); }
+        .task-bar.fullscreen-hidden:hover, .task-bar.fullscreen-show { transform: translateY(0); }
+
+        .app-icon {
+            width: 48px; height: 48px; border-radius: 11px; cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.2, 1, 0.2, 1);
+            display: flex; justify-content: center; align-items: center;
+            position: relative; overflow: hidden; flex-shrink: 0; user-select: none;
+        }
+        .app-icon:hover { transform: scale(1.1) translateY(-4px); }
+        .app-icon.tb-dragging { opacity: 0.5; transform: scale(0.9); transition: none !important; z-index: 1001; }
+        .app-icon::after {
+            content: ''; position: absolute; top: -50%; left: -60%;
+            width: 30%; height: 200%;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: rotate(25deg); pointer-events: none;
+        }
+        .app-icon:hover::after { animation: shineEffect 1.5s ease-in-out; }
+        .app-icon-settings { background-color: #e5e5ea; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .cog-container { width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; z-index: 2; pointer-events: none; }
+        .cog-container svg g { fill: #4a4a4a; }
+        .app-icon-appstore { background-color: #0a84ff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .app-icon-appstore svg { width: 28px; height: 28px; fill: #ffffff; }
+        .app-icon-browser { background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .browser-blue-circle { width: 34px; height: 34px; border-radius: 50%; background-color: #007aff; position: relative; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(0,0,0,0.05); pointer-events: none; }
+        .browser-diamond { width: 6px; height: 24px; background-color: #ff3b30; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); transform: rotate(45deg); z-index: 2; }
+        .browser-ticks { position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: radial-gradient(circle, transparent 70%, #ffffff 72%, transparent 74%) no-repeat center/100% 100%, repeating-conic-gradient(from 0deg, #ffffff 0deg 1deg, transparent 1deg 30deg); opacity: 0.6; border-radius: 50%; }
+        .app-icon-files { background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .files-folder-svg { width: 40px; height: 32px; pointer-events: none; }
+        .app-icon-photos { background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; }
+        .photos-container { position: relative; width: 32px; height: 32px; pointer-events: none; }
+        .photos-petal { position: absolute; width: 10px; height: 16px; border-radius: 5px; left: 11px; top: 0; transform-origin: 5px 16px; mix-blend-mode: multiply; opacity: 0.85; }
+        .photos-petal:nth-child(1) { background-color: #ff3b30; transform: rotate(0deg); }
+        .photos-petal:nth-child(2) { background-color: #ff9500; transform: rotate(45deg); }
+        .photos-petal:nth-child(3) { background-color: #ffcc00; transform: rotate(90deg); }
+        .photos-petal:nth-child(4) { background-color: #4cd964; transform: rotate(135deg); }
+        .photos-petal:nth-child(5) { background-color: #5ac8fa; transform: rotate(180deg); }
+        .photos-petal:nth-child(6) { background-color: #007aff; transform: rotate(225deg); }
+        .photos-petal:nth-child(7) { background-color: #5856d6; transform: rotate(270deg); }
+        .photos-petal:nth-child(8) { background-color: #ff2d55; transform: rotate(315deg); }
+
+        .generic-app-view { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; padding: 24px; text-align: center; }
+        .mock-link { color: var(--accent-color); text-decoration: underline; cursor: pointer; font-size: 1rem; margin-top: 4px; }
+
+        .window {
+            position: absolute; background-color: var(--bg-window); color: var(--text-main);
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            border: 1px solid var(--border-color); display: flex; flex-direction: column;
+            overflow: visible; z-index: 500; opacity: 0; transform: scale(0.8);
+            pointer-events: none;
+            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, border-radius 0.3s ease, background-color 0.3s, color 0.3s;
+        }
+        .window.state-transition { transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, width 0.3s ease, height 0.3s ease, top 0.3s ease, left 0.3s ease, border-radius 0.3s ease; }
+        .window.layout-transition { transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), top 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s !important; }
+        .window.open { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .window.minimize-anim { opacity: 0; transform: scale(0.05) translateY(1000px); pointer-events: none; }
+        .window.fullscreen { top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; border-radius: 0px !important; border: none; }
+
+        .window-titlebar {
+            width: 100%; height: 42px; background-color: var(--accent-tint-titlebar);
+            border-bottom: 1px solid var(--titlebar-border); display: flex; align-items: center;
+            padding: 0 16px; position: relative; cursor: move;
+            border-top-left-radius: 11px; border-top-right-radius: 11px;
+            flex-shrink: 0; z-index: 10;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s;
+        }
+        .window.fullscreen .window-titlebar { position: absolute; top: 0; left: 0; transform: translateY(-42px); z-index: 999; border-radius: 0; cursor: default; }
+        .window.fullscreen .window-titlebar.reveal { transform: translateY(0); }
+        .window-controls { display: flex; gap: 8px; }
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; font-size: 9px; font-weight: bold; }
+        .win-btn span { visibility: hidden; pointer-events: none; line-height: 1; }
+        .window-controls:hover .win-btn span { visibility: visible; }
+        .btn-close { background-color: #ff5f56; color: #4c0002; }
+        .btn-minimize { background-color: #ffbd2e; color: #5c3e00; }
+        .btn-expand { background-color: #27c93f; color: #004d06; }
+
+        .window-content { flex: 1; width: 100%; display: flex; flex-direction: row; overflow: hidden; border-bottom-left-radius: 11px; border-bottom-right-radius: 11px; }
+        .window.fullscreen .window-content { border-radius: 0; }
+        .settings-sidebar { width: 25%; height: 100%; background-color: var(--bg-sidebar); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-right: 1px solid var(--border-color); padding: 16px 12px; display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; overflow-y: auto; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .window.fullscreen .settings-sidebar { transform: translateY(-42px); height: calc(100% + 42px); }
+        .window.fullscreen .settings-sidebar.reveal-tabs { transform: translateY(0); }
+        .settings-search-bar { width: 100%; padding: 8px 12px; border: 1px solid var(--input-border); border-radius: 6px; background-color: var(--bg-window); color: var(--text-main); font-size: 0.9rem; outline: none; user-select: text; }
+        .settings-nav-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .settings-nav-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease; }
+        .settings-nav-item:hover { background-color: rgba(0, 0, 0, 0.05); }
+        .theme-dark .settings-nav-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .settings-nav-item.active { background-color: rgba(0, 122, 255, 0.1); }
+        .settings-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        .appstore-nav-icon { width: 18px; height: 18px; fill: var(--text-main); }
+        .bg-blue { background-color: var(--accent-color); transition: background-color 0.3s; }
+        .bg-gray { background-color: #8e8e93; }
+        .bg-cyan { background-color: #55befc; }
+        .white-silhouette { width: 18px; height: 18px; fill: #ffffff; }
+        .nav-label { font-size: 0.9rem; font-weight: 500; }
+        .sidebar-divider { border: none; border-top: 1px solid var(--border-color); margin: 6px 4px; }
+        .settings-main-pane { flex: 1; height: 100%; background-color: var(--bg-window); padding: 24px; overflow-y: auto; user-select: text; position: relative; }
+        .pane-tab-header { position: absolute; top: 24px; right: 24px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-sub); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .settings-pane-content { display: none; flex-direction: column; height: 100%; margin-top: 15px; }
+        .settings-pane-content.active { display: flex; }
+
+        .laptop-hero-silhouette { width: 70px; height: 70px; fill: #55befc; opacity: 0.85; }
+        .device-info-text { font-size: 1.4rem; font-weight: 300; margin-top: 10px; }
+        .storage-section { margin-top: 30px; width: 100%; max-width: 450px; }
+        .storage-bar-container { width: 100%; height: 16px; background-color: #e5e5ea; border-radius: 8px; margin-top: 8px; overflow: hidden; }
+        .theme-dark .storage-bar-container { background-color: #3a3a3c; }
+        .storage-bar-fill { width: 68%; height: 100%; background-color: var(--accent-color); border-radius: 8px; transition: background-color 0.3s; }
+        .account-pane-avatar-container { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; }
+        .account-pane-avatar { width: 90px; height: 90px; border-radius: 50%; background-color: #e5e5ea; overflow: hidden; border: 2px solid #ccc; }
+        .account-pane-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-action { background-color: var(--accent-color); color: #ffffff; border: none; padding: 8px 16px; font-size: 0.9rem; border-radius: 6px; cursor: pointer; transition: opacity 0.2s, background-color 0.3s; }
+        .btn-action:hover { opacity: 0.9; }
+        .btn-danger { background-color: #ff3b30; }
+        .account-edit-form { max-width: 350px; display: flex; flex-direction: column; gap: 12px; }
+        .account-edit-form .input-group { margin-bottom: 0; }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 26px; }
+        .switch input { display: none; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 26px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(18px); }
+        .wallpaper-preview-box { width: 240px; height: 150px; border-radius: 10px; background-color: #e5e5ea; margin-top: 10px; margin-bottom: 12px; background-size: cover; background-position: center; border: 1px solid var(--border-color); transition: background-image 0.2s; }
+        .theme-dark .wallpaper-preview-box { background-color: #333; }
+        .wallpaper-controls { display: flex; gap: 10px; margin-bottom: 30px; }
+        .appearance-grid { display: flex; gap: 20px; margin-top: 12px; margin-bottom: 24px; }
+        .appearance-option { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .appearance-preview-card { width: 110px; height: 75px; border-radius: 8px; border: 2px solid transparent; padding: 6px; display: flex; flex-direction: column; justify-content: flex-end; transition: border-color 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .appearance-option.selected .appearance-preview-card { border-color: var(--accent-color); }
+        .preview-card-light { background-color: #f0f0f0; }
+        .preview-card-light .mini-window { width: 100%; height: 40px; background: white; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .preview-card-light .mini-taskbar { width: 100%; height: 8px; background: rgba(255,255,255,0.6); margin-top: 5px; border-radius: 2px; }
+        .preview-card-dark { background-color: #121212; }
+        .preview-card-dark .mini-window { width: 100%; height: 40px; background: #1e1e1e; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .preview-card-dark .mini-taskbar { width: 100%; height: 8px; background: rgba(20,20,20,0.6); margin-top: 5px; border-radius: 2px; }
+        .preview-card-dynamic { background: linear-gradient(90deg, #f0f0f0 50%, #121212 50%); }
+        .preview-card-dynamic .mini-window { width: 100%; height: 40px; background: linear-gradient(90deg, white 50%, #1e1e1e 50%); border-radius: 4px; }
+        .preview-card-dynamic .mini-taskbar { width: 100%; height: 8px; background: linear-gradient(90deg, rgba(255,255,255,0.6) 50%, rgba(20,20,20,0.6) 50%); margin-top: 5px; border-radius: 2px; }
+        .appearance-label { font-size: 0.85rem; font-weight: 500; }
+        .accent-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+        .accent-label { font-weight: 500; font-size: 1rem; }
+        .accent-grid { display: flex; gap: 10px; align-items: center; }
+        .accent-circle { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1); position: relative; transition: transform 0.1s; }
+        .accent-circle:active { transform: scale(0.9); }
+        .accent-circle.selected { border-color: #007aff !important; }
+        .accent-circle-none { background: #ccc; display: flex; align-items: center; justify-content: center; }
+        .accent-circle-none::before { content: ''; width: 2px; height: 24px; background: #ff3b30; transform: rotate(45deg); }
+        #custom-color-picker { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+
+        .resize-handle { position: absolute; background-color: transparent; z-index: 99; }
+        .window.fullscreen .resize-handle { display: none !important; }
+        .resize-n { top: -4px; left: 4px; right: 4px; height: 8px; cursor: n-resize; }
+        .resize-s { bottom: -4px; left: 4px; right: 4px; height: 8px; cursor: s-resize; }
+        .resize-e { top: 4px; bottom: 4px; right: -4px; width: 8px; cursor: e-resize; }
+        .resize-w { top: 4px; bottom: 4px; left: -4px; width: 8px; cursor: w-resize; }
+        .resize-nw { top: -4px; left: -4px; width: 10px; height: 10px; cursor: nw-resize; }
+        .resize-ne { top: -4px; right: -4px; width: 10px; height: 10px; cursor: ne-resize; }
+        .resize-sw { bottom: -4px; left: -4px; width: 10px; height: 10px; cursor: sw-resize; }
+        .resize-se { bottom: -4px; right: -4px; width: 10px; height: 10px; cursor: se-resize; }
+
+        #top-hotzone { position: fixed; top: 0; left: 0; width: 100vw; height: 40px; z-index: 9999; display: none; pointer-events: auto; }
+        #bottom-hotzone { position: fixed; bottom: 0; left: 0; width: 100vw; height: 15px; z-index: 9999; display: none; pointer-events: auto; }
+
+        #cc-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 2500; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #cc-overlay.open { opacity: 1; pointer-events: auto; }
+        #control-center { position: fixed; top: 30px; right: 10px; width: 320px; height: 380px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 10px; z-index: 2600; opacity: 0; transform: translateY(-150%); pointer-events: none; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; }
+        #control-center.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .cc-btn { background-color: var(--taskbar-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 22px; display: flex; padding: 10px; color: #fff; cursor: pointer; position: relative; overflow: hidden; transition: background-color 0.2s, opacity 0.3s, transform 0.3s; }
+        .theme-light-active .cc-btn { border: 1px solid rgba(255,255,255,0.1); }
+        .cc-btn-2x1 { grid-column: span 2; flex-direction: row; align-items: center; gap: 10px; }
+        .cc-btn-2x2 { grid-column: span 2; grid-row: span 2; flex-direction: column; padding: 12px; align-items: stretch; justify-content: space-between; }
+        .cc-btn-icon { width: 30px; height: 30px; border-radius: 50%; background-color: #ffffff; color: var(--accent-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background-color 0.2s, color 0.2s; }
+        .cc-btn.off .cc-btn-icon { background-color: #888888; color: #ffffff; }
+        .cc-btn-icon svg { width: 18px; height: 18px; fill: currentColor; }
+        .cc-btn-text { display: flex; flex-direction: column; justify-content: center; flex: 1; }
+        .cc-btn-title { font-size: 13px; font-weight: 600; color: #ffffff; }
+        .cc-btn-subtitle { font-size: 11px; color: #dddddd; }
+        .np-top { display: flex; }
+        .np-artwork { width: 40px; height: 40px; background-color: rgba(0,0,0,0.3); border-radius: 6px; }
+        .np-info { font-size: 13px; font-weight: 600; margin: 10px 0; color: #fff; }
+        .np-controls { display: flex; justify-content: space-around; align-items: center; }
+        .np-controls svg { width: 24px; height: 24px; fill: #fff; cursor: pointer; }
+        .np-controls svg:nth-child(2) { width: 32px; height: 32px; }
+        .cc-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(30,30,30, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 22px; z-index: 10; display: flex; flex-direction: column; padding: 10px; transform: scale(0.8); opacity: 0; pointer-events: none; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); color: #ffffff; }
+        .theme-light-active .cc-menu { background-color: rgba(240,240,240, 0.9); color: #000000; }
+        .cc-menu.open { transform: scale(1); opacity: 1; pointer-events: auto; }
+        .cc-menu-item { padding: 8px 10px; border-radius: 8px; font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .cc-menu-item:hover { background-color: rgba(255,255,255,0.1); }
+        .theme-light-active .cc-menu-item:hover { background-color: rgba(0,0,0,0.05); }
+        .cc-menu-separator { border-top: 1px solid rgba(255,255,255,0.1); margin: 4px 0; }
+        .theme-light-active .cc-menu-separator { border-top: 1px solid rgba(0,0,0,0.1); }
+        .cc-menu-check { width: 16px; text-align: center; visibility: hidden; }
+        .cc-menu-item.selected .cc-menu-check { visibility: visible; }
+        #focus-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 10px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 5; }
+        #control-center.focus-active #focus-menu { opacity: 1; pointer-events: auto; }
+        #control-center.focus-active .cc-btn { opacity: 0; pointer-events: none; transform: scale(0.9); transition: opacity 0.2s, transform 0.2s; }
+        .focus-btn { flex: 1; background-color: var(--taskbar-bg); backdrop-filter: blur(20px); border-radius: 22px; display: flex; align-items: center; padding: 0 20px; color: #fff; cursor: pointer; gap: 15px; transform: translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .focus-btn:nth-child(1) { transition-delay: 0.1s; }
+        .focus-btn:nth-child(2) { transition-delay: 0.15s; }
+        .focus-btn:nth-child(3) { transition-delay: 0.2s; }
+        .focus-btn:nth-child(4) { transition-delay: 0.25s; }
+        #control-center.focus-active .focus-btn { transform: translateY(0); opacity: 1; }
+        #control-center.focus-closing .focus-btn { transition: all 0.15s ease; transform: translateY(20px); opacity: 0; }
+        .focus-btn.active { background-color: #ffffff; color: #000000; }
+        .focus-btn.active .focus-title { color: #000; }
+        .focus-btn.active .focus-sub { color: #666; }
+        .focus-icon svg { width: 24px; height: 24px; fill: currentColor; }
+        .focus-btn[data-focus="dnd"].active .focus-icon { color: #af52de; }
+        .focus-btn[data-focus="personal"].active .focus-icon { color: #ff375f; }
+        .focus-btn[data-focus="work"].active .focus-icon { color: #32ade6; }
+        .focus-btn[data-focus="sleep"].active .focus-icon { color: #af52de; }
+        .focus-title { font-size: 15px; font-weight: 600; }
+        .focus-sub { font-size: 12px; opacity: 0.7; color: rgba(255,255,255,0.7); margin-top: 2px; }
+        .focus-btn.active .focus-sub { color: rgba(0,0,0,0.5); }
+
+        .split-side { z-index: 950 !important; transition: transform 0.2s ease-in-out; }
+        body.split-view-active .split-side:hover { transform: scale(1.03); z-index: 951 !important; }
+        .split-main { z-index: 950 !important; }
+
+        .expose-win { z-index: 1401 !important; }
+        .expose-win:hover { transform: scale(1.05) !important; z-index: 1402 !important; }
+        .expose-x { position: absolute; top: -10px; left: -10px; width: 24px; height: 24px; border-radius: 50%; background: #ff453a; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 2500; font-size: 14px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+        .safari-content { flex: 1; width: 100%; display: flex; flex-direction: column; overflow: hidden; border-bottom-left-radius: 11px; border-bottom-right-radius: 11px; position: relative; background-color: var(--bg-window); }
+        .window.fullscreen .safari-content { border-radius: 0; overflow: visible; }
+        .safari-top-ui { display: flex; flex-direction: column; position: relative; z-index: 10; background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); }
+        .window.fullscreen .safari-top-ui .window-titlebar { position: relative; transform: none; border-radius: 0; z-index: 10; }
+        .window.fullscreen .safari-top-ui { position: absolute; top: 0; left: 0; width: 100%; transform: translateY(-100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 999; border-bottom: 1px solid var(--border-color); }
+        .window.fullscreen .safari-top-ui.reveal { transform: translateY(0); }
+        .window.fullscreen .safari-webview-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .safari-toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background-color: var(--bg-sidebar); transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease; max-height: 60px; overflow: hidden; }
+        .safari-toolbar.menu-active { opacity: 0; max-height: 0; padding: 0; margin: 0; border-bottom: none; pointer-events: none; }
+        .safari-back-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background-color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-main); transition: background-color 0.2s; }
+        .safari-back-btn:hover { background-color: rgba(0, 0, 0, 0.08); }
+        .theme-dark .safari-back-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .safari-search-bar { flex: 1; display: flex; align-items: center; gap: 8px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 16px; padding: 7px 14px; transition: all 0.2s; }
+        .safari-search-bar:focus-within { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.15); }
+        .safari-search-bar svg { width: 14px; height: 14px; fill: var(--text-sub); flex-shrink: 0; }
+        .safari-search-input { flex: 1; border: none; background: transparent; outline: none; font-size: 0.85rem; color: var(--text-main); user-select: text; }
+        .safari-search-input::placeholder { color: var(--text-sub); }
+        .safari-menu-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background-color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; font-weight: bold; color: var(--text-main); letter-spacing: -1px; transition: background-color 0.2s; }
+        .safari-menu-btn:hover { background-color: rgba(0, 0, 0, 0.08); }
+        .theme-dark .safari-menu-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .safari-menu-panel { position: absolute; top: 52px; right: 14px; width: 260px; background-color: var(--bg-window); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 6px; z-index: 200; display: none; flex-direction: column; gap: 2px; opacity: 0; transform: scale(0.95) translateY(-5px); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .safari-menu-panel.open { display: flex; opacity: 1; transform: scale(1) translateY(0); }
+        .safari-menu-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: var(--text-main); transition: background-color 0.15s; }
+        .safari-menu-item:hover { background-color: rgba(0, 0, 0, 0.06); }
+        .theme-dark .safari-menu-item:hover { background-color: rgba(255, 255, 255, 0.06); }
+        .safari-menu-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-main); }
+        .safari-tabs { display: flex; gap: 4px; padding: 6px 8px; background-color: var(--bg-sidebar); min-height: 40px; align-items: center; }
+        .safari-tab { flex: 1; min-width: 0; height: 32px; background-color: var(--bg-window); border: 1px solid var(--border-color); border-radius: 8px; display: flex; align-items: center; padding: 0 8px; gap: 8px; cursor: pointer; transition: background-color 0.2s, opacity 0.2s, transform 0.2s; overflow: hidden; position: relative; }
+        .safari-tab:hover { background-color: rgba(0, 0, 0, 0.03); }
+        .theme-dark .safari-tab:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .safari-tab.active { background-color: var(--accent-color); border-color: var(--accent-color); color: white; }
+        .safari-tab.active .safari-tab-title { color: white; }
+        .safari-tab.dragging { opacity: 0.4; }
+        .safari-tab-icon { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: rgba(128,128,128,0.15); }
+        .safari-tab-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .safari-tab-title { flex: 1; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); }
+        .safari-tab-close { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; opacity: 0.5; transition: opacity 0.2s, background-color 0.2s; color: inherit; }
+        .safari-tab:hover .safari-tab-close { opacity: 0.8; }
+        .safari-tab-close:hover { opacity: 1 !important; background-color: rgba(0, 0, 0, 0.15); }
+        .safari-tab.active .safari-tab-close:hover { background-color: rgba(255,255,255,0.2); }
+        .safari-new-tab-btn { width: 32px; height: 32px; border-radius: 8px; border: none; background-color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; color: var(--text-main); transition: background-color 0.2s; }
+        .safari-new-tab-btn:hover { background-color: rgba(0, 0, 0, 0.06); }
+        .theme-dark .safari-new-tab-btn:hover { background-color: rgba(255, 255, 255, 0.06); }
+        .safari-bookmarks { display: flex; gap: 4px; padding: 4px 10px; background-color: var(--bg-sidebar); min-height: 30px; overflow-x: auto; align-items: center; flex-wrap: nowrap; }
+        .safari-bookmarks::-webkit-scrollbar { height: 0; }
+        .safari-bookmark { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-main); transition: background-color 0.2s; white-space: nowrap; flex-shrink: 0; }
+        .safari-bookmark:hover { background-color: rgba(0, 0, 0, 0.06); }
+        .theme-dark .safari-bookmark:hover { background-color: rgba(255, 255, 255, 0.06); }
+        .safari-bookmark-icon { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: var(--accent-color); }
+        .safari-bookmark-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .safari-bookmarks-empty { color: var(--text-sub); font-size: 0.72rem; padding: 4px 8px; }
+        .safari-webview-container { flex: 1; position: relative; background-color: white; overflow: hidden; }
+        .safari-webview { width: 100%; height: 100%; border: none; }
+        .safari-start-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #f5f5f7, #e8e8ed); color: #333; text-align: center; }
+        .theme-dark .safari-start-page { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); color: #f5f5f5; }
+        .safari-start-page h2 { font-size: 2rem; font-weight: 300; margin-bottom: 8px; }
+        .safari-start-page p { color: var(--text-sub); font-size: 0.9rem; }
+
+        .bookmark-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 10001; backdrop-filter: blur(4px); }
+        .bookmark-modal-overlay.open { display: flex; }
+        .bookmark-modal { width: 400px; background-color: var(--bg-window); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); overflow: hidden; border: 1px solid var(--border-color); animation: modalSlideIn 0.3s ease; }
+        @keyframes modalSlideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .bookmark-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
+        .bookmark-modal-close { width: 28px; height: 28px; border-radius: 50%; border: none; background-color: transparent; cursor: pointer; font-size: 14px; color: var(--text-sub); display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+        .bookmark-modal-close:hover { background-color: rgba(0,0,0,0.06); }
+        .theme-dark .bookmark-modal-close:hover { background-color: rgba(255,255,255,0.06); }
+        .bookmark-modal-title { font-size: 1rem; font-weight: 600; color: var(--text-main); }
+        .bookmark-modal-save { background-color: var(--accent-color); color: white; border: none; padding: 6px 18px; border-radius: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: opacity 0.2s; }
+        .bookmark-modal-save:hover { opacity: 0.88; }
+        .bookmark-modal-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .bookmark-modal-box { border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; }
+        .bookmark-modal-site { display: flex; align-items: center; gap: 12px; }
+        .bookmark-modal-site-icon { width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: var(--accent-color); color: white; font-weight: bold; font-size: 1.1rem; }
+        .bookmark-modal-site-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .bookmark-modal-inputs { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .bookmark-modal-input { border: none; background: transparent; outline: none; font-size: 0.9rem; color: var(--text-main); padding: 4px 0; border-bottom: 1px solid transparent; user-select: text; transition: border-color 0.2s; }
+        .bookmark-modal-input:focus { border-bottom-color: var(--accent-color); }
+        .bookmark-modal-input.url { font-size: 0.78rem; color: var(--text-sub); }
+        .bookmark-modal-options { display: flex; flex-direction: column; gap: 4px; }
+        .bookmark-modal-option { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
+        .bookmark-modal-option:hover { background-color: rgba(0,0,0,0.04); }
+        .theme-dark .bookmark-modal-option:hover { background-color: rgba(255,255,255,0.04); }
+        .bookmark-modal-option.selected { background-color: rgba(0, 122, 255, 0.08); }
+        .bookmark-modal-option-icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .bookmark-modal-option-label { flex: 1; font-size: 0.88rem; color: var(--text-main); }
+        .bookmark-modal-option-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-color); flex-shrink: 0; transition: background-color 0.2s, border-color 0.2s; position: relative; }
+        .bookmark-modal-option.selected .bookmark-modal-option-check { background-color: var(--accent-color); border-color: var(--accent-color); }
+        .bookmark-modal-option.selected .bookmark-modal-option-check::after { content: ''; position: absolute; left: 5px; top: 2px; width: 5px; height: 9px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+
+        .shortcut-icon-wrapper { width: 48px; height: 48px; border-radius: 11px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .shortcut-icon-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .shortcut-icon-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; background: linear-gradient(135deg, var(--accent-color), #5856d6); }
+
+        @keyframes fadeInLogo { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeInStep { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes shineEffect { 0% { left: -60%; } 15% { left: 140%; } 100% { left: 140%; } }
+    </style>
+</head>
+<body>
+    <div id="os-status-bar">
+        <div class="status-left">
+            <div class="status-clock-date">
+                <span id="status-time">10:17 PM</span>
+                <span id="status-date">Thu Jul 2</span>
+            </div>
+        </div>
+        <div class="status-right">
+            <div class="status-item" id="status-wifi-icon">
+                <div class="status-wifi"><svg viewBox="0 0 18 14"><path d="M9 14l2.5-3c-.7-.5-1.5-.8-2.5-.8s-1.8.3-2.5.8L9 14zm0-6c2 0 3.8.7 5.3 1.9l1.4-1.7C14 6.6 11.6 5.7 9 5.7S4 6.6 2.3 8.2l1.4 1.7C5.2 8.7 7 8 9 8zm0-4c3.3 0 6.3 1.1 8.7 3l1.4-1.6C16.4 3.1 12.8 1.8 9 1.8S1.6 3.1-1.1 5.4L1.1 7C3.7 5.1 6.7 4 9 4z"/></svg></div>
+            </div>
+            <div class="status-item" id="status-cc-btn" title="Control Center">
+                <div class="status-cc"><svg viewBox="0 0 24 24"><path d="M3 5h6a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v0a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v0a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v0a1 1 0 0 0-1-1H3zm12 9h6a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v0a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v0a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v0a1 1 0 0 0-1-1h-6z"/></svg></div>
+            </div>
+            <div class="status-vpn" id="status-vpn">VPN</div>
+            <div class="status-item" id="status-battery-container">
+                <div class="status-battery">
+                    <span class="battery-percent" id="battery-percent">85%</span>
+                    <div class="battery-icon"><div class="battery-fill" id="battery-fill" style="width: 85%;"></div><div class="battery-bolt" id="battery-bolt">⚡</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cc-overlay"></div>
+    <div id="control-center">
+        <div class="cc-btn cc-btn-2x1" id="cc-wifi" style="grid-column: 1 / span 2; grid-row: 1;">
+            <div class="cc-btn-icon"><svg viewBox="0 0 18 14"><path d="M9 14l2.5-3c-.7-.5-1.5-.8-2.5-.8s-1.8.3-2.5.8L9 14zm0-6c2 0 3.8.7 5.3 1.9l1.4-1.7C14 6.6 11.6 5.7 9 5.7S4 6.6 2.3 8.2l1.4 1.7C5.2 8.7 7 8 9 8zm0-4c3.3 0 6.3 1.1 8.7 3l1.4-1.6C16.4 3.1 12.8 1.8 9 1.8S1.6 3.1-1.1 5.4L1.1 7C3.7 5.1 6.7 4 9 4z"/></svg></div>
+            <div class="cc-btn-text"><div class="cc-btn-title">Wi-Fi</div><div class="cc-btn-subtitle" id="cc-wifi-subtitle">Connected</div></div>
+        </div>
+        <div class="cc-btn cc-btn-2x1" id="cc-bt" style="grid-column: 1 / span 2; grid-row: 2;">
+            <div class="cc-btn-icon" id="cc-bt-icon-toggle"><svg viewBox="0 0 24 24"><path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm0 12.34v-3.76l1.88 1.88L13 18.17z"/></svg></div>
+            <div class="cc-btn-text" id="cc-bt-text-area"><div class="cc-btn-title">Bluetooth</div><div class="cc-btn-subtitle" id="cc-bt-subtitle">On</div></div>
+            <div class="cc-menu" id="cc-bt-menu">
+                <div class="cc-menu-item">AirPods Pro</div><div class="cc-menu-item">iPhone 13</div><div class="cc-menu-item">Magic Keyboard</div>
+                <div class="cc-menu-separator"></div><div class="cc-menu-item" id="bt-settings-btn">Bluetooth Settings...</div>
+            </div>
+        </div>
+        <div class="cc-btn cc-btn-2x1" id="cc-airdrop" style="grid-column: 1 / span 2; grid-row: 3;">
+            <div class="cc-btn-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
+            <div class="cc-btn-text"><div class="cc-btn-title">Airdrop</div><div class="cc-btn-subtitle" id="cc-airdrop-subtitle">Everyone</div></div>
+            <div class="cc-menu" id="cc-airdrop-menu">
+                <div class="cc-menu-item" data-airdrop="off"><span class="cc-menu-check">✓</span>Receiving Off</div>
+                <div class="cc-menu-item selected" data-airdrop="contacts"><span class="cc-menu-check">✓</span>Contacts Only</div>
+                <div class="cc-menu-item" data-airdrop="everyone"><span class="cc-menu-check">✓</span>Everyone</div>
+            </div>
+        </div>
+        <div class="cc-btn cc-btn-2x2" id="cc-nowplaying" style="grid-column: 3 / span 2; grid-row: 1 / span 2;">
+            <div class="np-top"><div class="np-artwork"></div></div>
+            <div class="np-info">Not Playing</div>
+            <div class="np-controls">
+                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="m6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </div>
+        </div>
+        <div class="cc-btn" id="cc-splitview" style="grid-column: 3; grid-row: 3; padding: 0; justify-content: center; align-items: center;">
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #fff;"><rect x="9" y="3" width="12" height="18" rx="2" /><rect x="3" y="3" width="4" height="4" rx="1" /><rect x="3" y="10" width="4" height="4" rx="1" /><rect x="3" y="17" width="4" height="4" rx="1" /></svg>
+        </div>
+        <div class="cc-btn" id="cc-expose" style="grid-column: 4; grid-row: 3; padding: 0; justify-content: center; align-items: center;">
+            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 2;"><rect x="6" y="2" width="13" height="13" rx="2"/><rect x="5" y="3" width="13" height="13" rx="2" fill="#000" /></svg>
+        </div>
+        <div class="cc-btn cc-btn-2x1" id="cc-focus" style="grid-column: 3 / span 2; grid-row: 4;">
+            <div class="cc-btn-icon" style="background: rgba(255,255,255,0.25); width: 28px; height: 28px;"><svg viewBox="0 0 24 24" fill="#fff" style="width: 18px; height: 18px;"><path d="M12 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 4c2.2 0 4 1.8 4 4v1H8v-1c0-2.2 1.8-4 4-4z"/></svg></div>
+            <div class="cc-btn-text"><div class="cc-btn-title">Focus</div></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width: 16px; height: 16px; opacity: 0.7; margin-right: 8px;"><path d="M7 10l5-5 5 5zm0 4l5 5 5-5z"/></svg>
+        </div>
+        <div id="focus-menu">
+            <div class="focus-btn" data-focus="dnd"><div class="focus-icon" style="color: #af52de;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"/></svg></div><div class="focus-text"><div class="focus-title">Do Not Disturb</div><div class="focus-sub">Silence all notifications</div></div></div>
+            <div class="focus-btn" data-focus="personal"><div class="focus-icon" style="color: #ff375f;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="focus-text"><div class="focus-title">Personal</div></div></div>
+            <div class="focus-btn" data-focus="work"><div class="focus-icon" style="color: #32ade6;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM6 10h2v2H6zm0 4h2v2H6zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2z"/></svg></div><div class="focus-text"><div class="focus-title">Work</div></div></div>
+            <div class="focus-btn" data-focus="sleep"><div class="focus-icon" style="color: #af52de;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div><div class="focus-text"><div class="focus-title">Sleep</div></div></div>
+        </div>
+    </div>
+
+    <div id="expose-overlay"></div>
+    <div id="top-hotzone"></div>
+    <div id="bottom-hotzone"></div>
+
+    <div id="boot-screen"><svg class="apple-logo" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg></div>
+
+    <div class="wizard-container" id="setup-wizard">
+        <div class="step-card active" id="step-0">
+            <h1>Create Account</h1>
+            <div class="input-group"><label for="setup-username">Username</label><input type="text" id="setup-username" placeholder="Enter username..." autocomplete="off"></div>
+            <div class="input-group"><label for="setup-password">Password</label><input type="password" id="setup-password" placeholder="Enter password..." autocomplete="off"></div>
+            <button class="btn-submit" id="btn-next-0">Next</button>
+        </div>
+        <div class="step-card" id="step-1">
+            <h1>Profile Picture</h1>
+            <div class="avatar-placeholder" id="avatar-trigger"><span id="plus-icon">+</span><img id="avatar-preview" src="" alt="Avatar Preview" style="display: none;"></div>
+            <input type="file" id="file-input" accept="image/*">
+            <button class="btn-submit visible" id="btn-finish" style="margin-bottom: 8px;">Finish Setup</button>
+            <span style="font-size:0.85rem; color:#8e8e93; cursor:pointer;" id="btn-skip-photo">Skip Photo</span>
+        </div>
+        <div class="dots-container"><div class="dot active"></div><div class="dot"></div></div>
+    </div>
+
+    <div id="prep-screen"><div class="prep-text" id="prep-status-text">Getting things ready for you</div><div class="white-spinner"></div></div>
+
+    <div id="lock-screen">
+        <div class="lock-bg active" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920')"></div>
+        <div class="lock-bg" style="background-image: url('https://images.unsplash.com/photo-1472396961693-142e6e269027?q=80&w=1920')"></div>
+        <div id="lock-content"><div class="clock" id="clock-display">00:00</div></div>
+        <div id="login-overlay">
+            <div class="login-card" id="login-card">
+                <div class="login-avatar"><img id="login-avatar-img" src="" alt="User Avatar"></div>
+                <div class="login-username" id="login-username-display">Username</div>
+                <div class="login-input-group" id="login-inputs"><input type="password" id="login-password" placeholder="Password"><button class="btn-signin" id="btn-signin-action">Sign in</button><div id="login-error">Incorrect password.</div></div>
+                <div class="welcome-msg" id="login-welcome">Welcome</div><div class="white-spinner" id="login-spinner" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="desktop">
+        <div class="desktop-grid" id="desktop-apps-grid"></div>
+
+        <div class="window" id="app-generic-window" style="width: 600px; height: 450px; left: 20%; top: 20%;">
+            <div class="resize-handle resize-n" data-handle="n"></div><div class="resize-handle resize-s" data-handle="s"></div><div class="resize-handle resize-e" data-handle="e"></div><div class="resize-handle resize-w" data-handle="w"></div><div class="resize-handle resize-nw" data-handle="nw"></div><div class="resize-handle resize-ne" data-handle="ne"></div><div class="resize-handle resize-sw" data-handle="sw"></div><div class="resize-handle resize-se" data-handle="se"></div>
+            <div class="window-titlebar" id="app-generic-titlebar"><div class="window-controls"><button class="win-btn btn-close" id="generic-close-btn"><span>✕</span></button><button class="win-btn btn-minimize" id="generic-min-btn"><span>─</span></button><button class="win-btn btn-expand" id="generic-expand-btn"><span>■</span></button></div></div>
+            <div class="window-content" style="background-color: var(--bg-window);"><div class="generic-app-view"><h2 id="generic-app-title" style="font-weight: 400; margin-bottom: 10px;">App</h2><p style="color: var(--text-sub);">Application content display sandbox.</p><div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;"><a href="https://www.wikipedia.org" class="mock-link">Open Wikipedia in Safari</a><a href="https://www.youtube.com" class="mock-link">Open YouTube in Safari</a><a href="https://mail.google.com" class="mock-link">Open Gmail in Safari</a></div></div></div>
+        </div>
+
+        <div class="window" id="app-appstore-window" style="width: 850px; height: 550px; left: 15%; top: 15%;">
+            <div class="resize-handle resize-n" data-handle="n"></div><div class="resize-handle resize-s" data-handle="s"></div><div class="resize-handle resize-e" data-handle="e"></div><div class="resize-handle resize-w" data-handle="w"></div><div class="resize-handle resize-nw" data-handle="nw"></div><div class="resize-handle resize-ne" data-handle="ne"></div><div class="resize-handle resize-sw" data-handle="sw"></div><div class="resize-handle resize-se" data-handle="se"></div>
+            <div class="window-titlebar" id="app-appstore-titlebar"><div class="window-controls"><button class="win-btn btn-close" id="appstore-close-btn"><span>✕</span></button><button class="win-btn btn-minimize" id="appstore-min-btn"><span>─</span></button><button class="win-btn btn-expand" id="appstore-expand-btn"><span>■</span></button></div></div>
+            <div class="window-content">
+                <aside class="settings-sidebar" id="app-appstore-sidebar">
+                    <input type="text" class="settings-search-bar" placeholder="Search">
+                    <ul class="settings-nav-list">
+                        <li class="settings-nav-item active" data-appstore-tab="discover"><div class="settings-icon"><svg class="appstore-nav-icon" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div><span class="nav-label">Discover</span></li>
+                        <li class="settings-nav-item" data-appstore-tab="create"><div class="settings-icon"><svg class="appstore-nav-icon" viewBox="0 0 24 24"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 0 0-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 0 0 0-1.41z"/></svg></div><span class="nav-label">Create</span></li>
+                        <li class="settings-nav-item" data-appstore-tab="work"><div class="settings-icon"><svg class="appstore-nav-icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div><span class="nav-label">Work</span></li>
+                        <li class="settings-nav-item" data-appstore-tab="play"><div class="settings-icon"><svg class="appstore-nav-icon" viewBox="0 0 24 24"><path d="M12 2.5c2.76 0 5 2.24 5 5 0 2.05-1.24 3.81-3 4.58V14h-4v-1.92c-1.76-.77-3-2.53-3-4.58 0-2.76 2.24-5 5-5zm-3 12.5h6l-1 6h-4l-1-6zm2-10v2h2V5h-2z"/></svg></div><span class="nav-label">Play</span></li>
+                        <li class="settings-nav-item" data-appstore-tab="develop"><div class="settings-icon"><svg class="appstore-nav-icon" viewBox="0 0 24 24"><path d="M14 2l-4 4 3 3 4-4-3-3zm-9 11l-2 2v3h3l2-2-3-3zm7-7l-5 5 2 2 5-5-2-2z"/></svg></div><span class="nav-label">Develop</span></li>
+                        <li class="settings-nav-item" data-appstore-tab="categories"><div class="settings-icon"><svg class="appstore-nav-icon" viewBox="0 0 24 24"><path d="M11 3H3v8h2V5h6V3zm10 10h-8v8h8v-8zm-2 2v4h-4v-4h4zM3 13v8h8v-8H3zm6 6H5v-4h4v4zm10-12V3h-8v8h8V7zm-2 2h-4V5h4v4z"/></svg></div><span class="nav-label">Categories</span></li>
+                        <li class="settings-nav-item" data-appstore-tab="updates"><div class="settings-icon"><svg class="appstore-nav-icon" viewBox="0 0 24 24" fill-rule="evenodd"><path d="M3 3h18v18H3V3zm12 8v-4h-2v4h-3l4 4 4-4h-3z"/></svg></div><span class="nav-label">Updates</span></li>
+                    </ul>
+                </aside>
+                <main class="settings-main-pane" id="app-appstore-main">
+                    <div class="pane-tab-header"><span id="appstore-pane-header-label">Discover</span></div>
+                    <div class="settings-pane-content active" id="appstore-pane-discover"><h2 style="font-weight: 300;">Discover</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Explore new apps curated just for you.</p></div>
+                    <div class="settings-pane-content" id="appstore-pane-create"><h2 style="font-weight: 300;">Create</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Tools for artists, video editors, and designers.</p></div>
+                    <div class="settings-pane-content" id="appstore-pane-work"><h2 style="font-weight: 300;">Work</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Productivity apps to get things done.</p></div>
+                    <div class="settings-pane-content" id="appstore-pane-play"><h2 style="font-weight: 300;">Play</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Games and entertainment for everyone.</p></div>
+                    <div class="settings-pane-content" id="appstore-pane-develop"><h2 style="font-weight: 300;">Develop</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Resources and IDEs for coders.</p></div>
+                    <div class="settings-pane-content" id="appstore-pane-categories"><h2 style="font-weight: 300;">Categories</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Browse apps by category.</p></div>
+                    <div class="settings-pane-content" id="appstore-pane-updates"><h2 style="font-weight: 300;">Updates</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Your apps are all up to date.</p></div>
+                </main>
+            </div>
+        </div>
+
+        <div class="window" id="app-safari-window" style="width: 900px; height: 600px; left: 12%; top: 10%;">
+            <div class="resize-handle resize-n" data-handle="n"></div><div class="resize-handle resize-s" data-handle="s"></div><div class="resize-handle resize-e" data-handle="e"></div><div class="resize-handle resize-w" data-handle="w"></div><div class="resize-handle resize-nw" data-handle="nw"></div><div class="resize-handle resize-ne" data-handle="ne"></div><div class="resize-handle resize-sw" data-handle="sw"></div><div class="resize-handle resize-se" data-handle="se"></div>
+            <div class="safari-content">
+                <div class="safari-top-ui" id="safari-top-ui">
+                    <div class="window-titlebar" id="app-safari-titlebar"><div class="window-controls"><button class="win-btn btn-close" id="safari-close-btn"><span>✕</span></button><button class="win-btn btn-minimize" id="safari-min-btn"><span>─</span></button><button class="win-btn btn-expand" id="safari-expand-btn"><span>■</span></button></div></div>
+                    <div class="safari-toolbar" id="safari-toolbar">
+                        <button class="safari-back-btn" id="safari-back-btn" title="Back"><svg width="16" height="16" viewBox="0 0 16 16"><polyline points="9,4 5,8 9,12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                        <div class="safari-search-bar"><svg viewBox="0 0 24 24" fill="currentColor" style="opacity:0.5;"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><input type="text" class="safari-search-input" id="safari-search-input" placeholder="Search or enter website name"></div>
+                        <button class="safari-menu-btn" id="safari-menu-btn" title="Menu">···</button>
+                    </div>
+                    <div class="safari-menu-panel" id="safari-menu-panel">
+                        <div class="safari-menu-item" data-action="share"><div class="safari-menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8 L12 16 M8 12 L12 8 L16 12" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span>Share</span></div>
+                        <div class="safari-menu-item" data-action="bookmark"><div class="safari-menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3 L18 3 L18 21 L12 17 L6 21 Z" stroke-linejoin="round"/></svg></div><span>Add to Bookmarks</span></div>
+                        <div class="safari-menu-item" data-action="desktop-bookmark"><div class="safari-menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4 L12 4 L12 20 L4 20 Z M12 4 L20 4 L20 20 L12 20" stroke-linejoin="round"/></svg></div><span>Add Bookmark to Desktop</span></div>
+                        <div class="safari-menu-item" data-action="new-tab"><div class="safari-menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16" stroke-linecap="round"/><line x1="8" y1="12" x2="16" y2="12" stroke-linecap="round"/></svg></div><span>New Tab</span></div>
+                        <div class="safari-menu-item" data-action="reload"><div class="safari-menu-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12 A9 9 0 1 1 12 21" stroke-linecap="round"/><polyline points="3,7 3,12 8,12" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span>Reload Page</span></div>
+                    </div>
+                    <div class="safari-tabs" id="safari-tabs"></div>
+                    <div class="safari-bookmarks" id="safari-bookmarks"></div>
+                </div>
+                <div class="safari-webview-container"><iframe class="safari-webview" id="safari-webview" src="about:blank"></iframe><div class="safari-start-page" id="safari-start-page"><h2>Safari</h2><p>Search or enter a website address above</p></div></div>
+            </div>
+        </div>
+
+        <div class="bookmark-modal-overlay" id="bookmark-modal-overlay">
+            <div class="bookmark-modal">
+                <div class="bookmark-modal-header"><button class="bookmark-modal-close" id="bookmark-modal-close">✕</button><div class="bookmark-modal-title">Add Bookmark</div><button class="bookmark-modal-save" id="bookmark-modal-save">Save</button></div>
+                <div class="bookmark-modal-body">
+                    <div class="bookmark-modal-box"><div class="bookmark-modal-site"><div class="bookmark-modal-site-icon" id="bookmark-modal-icon"></div><div class="bookmark-modal-inputs"><input type="text" class="bookmark-modal-input" id="bookmark-modal-name" placeholder="Name"><input type="text" class="bookmark-modal-input url" id="bookmark-modal-url" placeholder="URL"></div></div></div>
+                    <div class="bookmark-modal-box"><div class="bookmark-modal-options">
+                        <div class="bookmark-modal-option" data-option="favorites"><div class="bookmark-modal-option-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#007aff"><path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 Z"/></svg></div><span class="bookmark-modal-option-label">Favorites</span><div class="bookmark-modal-option-check"></div></div>
+                        <div class="bookmark-modal-option" data-option="desktop"><div class="bookmark-modal-option-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="1"/><line x1="8" y1="20" x2="16" y2="20" stroke-linecap="round"/><line x1="12" y1="16" x2="12" y2="20"/></svg></div><span class="bookmark-modal-option-label">Desktop</span><div class="bookmark-modal-option-check"></div></div>
+                    </div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="window" id="app-settings-window">
+            <div class="resize-handle resize-n" data-handle="n"></div><div class="resize-handle resize-s" data-handle="s"></div><div class="resize-handle resize-e" data-handle="e"></div><div class="resize-handle resize-w" data-handle="w"></div><div class="resize-handle resize-nw" data-handle="nw"></div><div class="resize-handle resize-ne" data-handle="ne"></div><div class="resize-handle resize-sw" data-handle="sw"></div><div class="resize-handle resize-se" data-handle="se"></div>
+            <div class="window-titlebar" id="app-settings-titlebar"><div class="window-controls"><button class="win-btn btn-close" id="win-close-btn" title="Close"><span>✕</span></button><button class="win-btn btn-minimize" id="win-min-btn" title="Minimize"><span>─</span></button><button class="win-btn btn-expand" id="win-expand-btn" title="Fullscreen"><span>■</span></button></div></div>
+            <div class="window-content">
+                <aside class="settings-sidebar" id="app-settings-sidebar">
+                    <input type="text" class="settings-search-bar" placeholder="Search settings...">
+                    <ul class="settings-nav-list">
+                        <li class="settings-nav-item active" data-tab="about"><div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg></div><span class="nav-label">About this PC</span></li>
+                        <li class="settings-nav-item" data-tab="account"><div class="settings-icon bg-gray"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><span class="nav-label">User Account</span></li>
+                        <hr class="sidebar-divider">
+                        <li class="settings-nav-item" data-tab="system-status"><div class="settings-icon bg-gray"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div><span class="nav-label">System Status</span></li>
+                        <li class="settings-nav-item" data-tab="wifi"><div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M12 21l-1.45-1.45C5.33 14.33 2 11.31 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 3.81-3.33 6.83-8.55 12.05L12 21z"/></svg></div><span class="nav-label">Wi-Fi Network</span></li>
+                        <li class="settings-nav-item" data-tab="bluetooth"><div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm0 12.34v-3.76l1.88 1.88L13 18.17z"/></svg></div><span class="nav-label">Bluetooth</span></li>
+                        <hr class="sidebar-divider">
+                        <li class="settings-nav-item" data-tab="dock"><div class="settings-icon bg-gray"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg></div><span class="nav-label">Dock Parameters</span></li>
+                        <li class="settings-nav-item" data-tab="desktop-settings"><div class="settings-icon bg-cyan"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div><span class="nav-label">Desktop Theme</span></li>
+                    </ul>
+                </aside>
+                <main class="settings-main-pane" id="app-settings-main">
+                    <div class="pane-tab-header"><span id="pane-tab-header-label">About this PC</span></div>
+                    <div class="settings-pane-content active" id="pane-about"><div style="display: flex; flex-direction: column; align-items: flex-start; margin-top: 10px;"><svg class="laptop-hero-silhouette" viewBox="0 0 24 24"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg><div class="device-info-text" id="about-device-name">QuantumBook Air</div></div><div class="storage-section"><h3 style="font-weight: 500; font-size: 1rem;">Storage</h3><div class="storage-bar-container"><div class="storage-bar-fill"></div></div><div style="display:flex; justify-content:space-between; margin-top: 6px; font-size: 0.85rem; color: var(--text-sub);"><span>1.36 TB Used</span><span>2 TB Max</span></div></div></div>
+                    <div class="settings-pane-content" id="pane-account"><div class="account-pane-avatar-container"><div class="account-pane-avatar" id="pane-avatar-box"><img id="pane-avatar-img" src="" alt="User Avatar"></div><div><button class="btn-action" id="btn-change-avatar">Change Photo</button><input type="file" class="pane-file-input" id="pane-avatar-input" accept="image/*"></div></div><h3 style="font-weight: 500; margin-bottom: 12px; font-size: 1.1rem;">Update Profile Credentials</h3><div class="account-edit-form"><div class="input-group"><label>Account Name</label><input type="text" id="pane-username-input" placeholder="Username"></div><div class="input-group"><label>New Password</label><input type="password" id="pane-password-input" placeholder="••••••••"></div><button class="btn-action" id="btn-save-credentials" style="margin-top: 8px; max-width: 150px;">Save Changes</button></div></div>
+                    <div class="settings-pane-content" id="pane-system-status"><h2 style="font-weight: 300;">Mock System Status</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><div class="toggle-row"><span>VPN Active</span><label class="switch"><input type="checkbox" id="toggle-vpn" checked><span class="slider"></span></label></div><div class="toggle-row"><span>Plugged In (Charging)</span><label class="switch"><input type="checkbox" id="toggle-charging" checked><span class="slider"></span></label></div><div style="margin-top: 20px;"><label>Battery Level: <span id="battery-level-display">85%</span></label><input type="range" id="battery-slider" min="0" max="100" value="85" style="width: 100%; margin-top: 10px;"></div></div>
+                    <div class="settings-pane-content" id="pane-wifi"><h2 style="font-weight: 300;">Wi-Fi Networks</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Connected to Internet Pipeline.</p></div>
+                    <div class="settings-pane-content" id="pane-bluetooth"><h2 style="font-weight: 300;">Bluetooth</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Searching for nearby wireless modules...</p></div>
+                    <div class="settings-pane-content" id="pane-dock"><h2 style="font-weight: 300;">Dock & Menu Bar</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Configure workspace layout parameters.</p></div>
+                    <div class="settings-pane-content" id="pane-desktop-settings"><h3 style="font-weight: 500; font-size: 1.1rem;">Desktop Backdrop Wallpaper</h3><div class="wallpaper-preview-box" id="pane-wallpaper-preview"></div><div class="wallpaper-controls"><button class="btn-action" id="btn-upload-wallpaper">Choose Image</button><button class="btn-action btn-danger" id="btn-remove-wallpaper">Reset Backdrop</button><input type="file" class="pane-file-input" id="pane-wallpaper-input" accept="image/*"></div><h3 style="font-weight: 500; font-size: 1.1rem;">Interface Style Configuration</h3><div class="appearance-grid"><div class="appearance-option selected" data-theme="light"><div class="appearance-preview-card preview-card-light"><div class="mini-window"></div><div class="mini-taskbar"></div></div><span class="appearance-label">Light Mode</span></div><div class="appearance-option" data-theme="dark"><div class="appearance-preview-card preview-card-dark"><div class="mini-window"></div><div class="mini-taskbar"></div></div><span class="appearance-label">Dark Mode</span></div><div class="appearance-option" data-theme="dynamic"><div class="appearance-preview-card preview-card-dynamic"><div class="mini-window"></div><div class="mini-taskbar"></div></div><span class="appearance-label">Dynamic Time</span></div></div><h3 style="font-weight: 500; font-size: 1.1rem;">Accent Tint Selection</h3><div class="accent-row"><div class="accent-grid"><div class="accent-circle accent-circle-none selected" data-color="" title="Default Theme Base"></div><div class="accent-circle" data-color="#ff9500" style="background: #ff9500;" title="Orange"></div><div class="accent-circle" data-color="#34c759" style="background: #34c759;" title="Green"></div><div class="accent-circle" data-color="#007aff" style="background: #007aff;" title="Blue"></div><div class="accent-circle" data-color="#5856d6" style="background: #5856d6;" title="Purple"></div><div class="accent-circle" data-color="#ff2d55" style="background: #ff2d55;" title="Pink"></div></div><input type="color" id="custom-color-picker"></div></div>
+                </main>
+            </div>
+        </div>
+
+        <div class="task-bar" id="system-taskbar"></div>
+    </div>
+
+    <script>
+        const osSetupData = { username: '', password: '', profilePicture: '' };
+        let userProfileData = null;
+        let setupComplete = false;
+        const bootScreen = document.getElementById('boot-screen');
+        const wizard = document.getElementById('setup-wizard');
+        const prepScreen = document.getElementById('prep-screen');
+        const lockScreen = document.getElementById('lock-screen');
+        const desktop = document.getElementById('desktop');
+        const taskbar = document.getElementById('system-taskbar');
+        const osStatusBar = document.getElementById('os-status-bar');
+        let topWindowZIndex = 500;
+
+        function bringToFront(windowElement) { topWindowZIndex++; windowElement.style.zIndex = topWindowZIndex; }
+        document.querySelectorAll('.window').forEach(win => { win.addEventListener('mousedown', () => bringToFront(win)); });
+
+        const osState = { vpnActive: true, batteryLevel: 85, isCharging: true, wifiOn: true, btOn: true };
+
+        function updateOsStatusBar() {
+            document.getElementById('status-vpn').style.display = osState.vpnActive ? 'flex' : 'none';
+            document.getElementById('battery-percent').textContent = osState.batteryLevel + '%';
+            document.getElementById('battery-fill').style.width = osState.batteryLevel + '%';
+            document.getElementById('status-battery-container').classList.toggle('charging', osState.isCharging);
+        }
+
+        function updateStatusBarColor() {
+            const el = document.elementFromPoint(window.innerWidth / 2, 12);
+            let isLight = false;
+            if (el) {
+                const win = el.closest('.window');
+                if (win) { const bg = getComputedStyle(win).getPropertyValue('--bg-window').trim(); if (bg === '#ffffff') isLight = true; }
+                else if (el.id === 'desktop') { if (!document.body.classList.contains('theme-dark')) isLight = true; }
+            }
+            osStatusBar.classList.toggle('on-light', isLight);
+        }
+
+        function updateClockAndDate() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12; hours = hours ? hours : 12;
+            document.getElementById('status-time').textContent = `${hours}:${minutes} ${ampm}`;
+            document.getElementById('status-date').textContent = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()]} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()]} ${now.getDate()}`;
+            document.getElementById('clock-display').textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            if (localStorage.getItem('os_theme_mode') === 'dynamic') evaluateDynamicTheme();
+        }
+
+        window.addEventListener('load', () => {
+            const savedAccent = localStorage.getItem('os_accent_color');
+            if (savedAccent) updateAccentColorMode(savedAccent);
+            updateClockAndDate(); setInterval(updateClockAndDate, 1000);
+            setTimeout(() => { bootScreen.style.opacity = '0'; setTimeout(() => { bootScreen.style.display = 'none'; checkExistingInstallation(); }, 1000); }, 3500);
+        });
+
+        function checkExistingInstallation() {
+            const savedProfile = localStorage.getItem('os_user_profile');
+            if (savedProfile) { userProfileData = JSON.parse(savedProfile); setupComplete = true; showLockScreen(); }
+            else { wizard.classList.add('loaded'); }
+        }
+
+        const step0 = document.getElementById('step-0'), step1 = document.getElementById('step-1');
+        const usernameIn = document.getElementById('setup-username'), passwordIn = document.getElementById('setup-password');
+        const btnNext0 = document.getElementById('btn-next-0'), dots = document.querySelectorAll('.dot');
+        function validateStep0() { btnNext0.classList.toggle('visible', usernameIn.value.trim().length >= 2 && passwordIn.value.length >= 4); }
+        usernameIn.addEventListener('input', validateStep0); passwordIn.addEventListener('input', validateStep0);
+        btnNext0.addEventListener('click', () => { osSetupData.username = usernameIn.value.trim(); osSetupData.password = passwordIn.value; step0.classList.remove('active'); dots[0].classList.remove('active'); step1.classList.add('active'); dots[1].classList.add('active'); });
+
+        const avatarTrigger = document.getElementById('avatar-trigger'), fileInput = document.getElementById('file-input');
+        const avatarPreview = document.getElementById('avatar-preview'), plusIcon = document.getElementById('plus-icon');
+        const btnFinish = document.getElementById('btn-finish'), btnSkipPhoto = document.getElementById('btn-skip-photo');
+        avatarTrigger.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(event) { osSetupData.profilePicture = event.target.result; avatarPreview.src = event.target.result; avatarPreview.style.display = 'block'; plusIcon.style.display = 'none'; avatarTrigger.style.borderStyle = 'solid'; }; reader.readAsDataURL(file); } });
+
+        function completeSetup() { userProfileData = osSetupData; localStorage.setItem('os_user_profile', JSON.stringify(userProfileData)); setupComplete = true; wizard.classList.remove('loaded'); setTimeout(() => { wizard.style.display = 'none'; prepScreen.style.display = 'flex'; setTimeout(() => { prepScreen.style.opacity = '1'; }, 50); setTimeout(() => { prepScreen.style.opacity = '0'; setTimeout(() => { prepScreen.style.display = 'none'; showLockScreen(); }, 1000); }, 5000); }, 1000); }
+        btnFinish.addEventListener('click', completeSetup);
+        btnSkipPhoto.addEventListener('click', () => { osSetupData.profilePicture = ''; completeSetup(); });
+
+        let currentBgIndex = 0;
+        function showLockScreen() { startSlideshow(); lockScreen.style.display = 'block'; populatePaneAccountData(); }
+        const bgImages = document.querySelectorAll('.lock-bg');
+        function startSlideshow() { setInterval(() => { bgImages[currentBgIndex].classList.remove('active'); currentBgIndex = (currentBgIndex + 1) % bgImages.length; bgImages[currentBgIndex].classList.add('active'); }, 10000); }
+
+        const loginOverlay = document.getElementById('login-overlay'), loginCard = document.getElementById('login-card');
+        lockScreen.addEventListener('click', (e) => { if (!loginOverlay.classList.contains('active')) showLoginOverlay(); else if (e.target === loginOverlay) hideLoginOverlay(); });
+
+        const loginPasswordInput = document.getElementById('login-password'), loginInputsArea = document.getElementById('login-inputs');
+        const btnSignIn = document.getElementById('btn-signin-action'), loginErrorMsg = document.getElementById('login-error');
+        const welcomeMsg = document.getElementById('login-welcome'), loginSpinner = document.getElementById('login-spinner');
+
+        function showLoginOverlay() {
+            document.getElementById('login-username-display').textContent = userProfileData.username;
+            const avatarImg = document.getElementById('login-avatar-img');
+            if (userProfileData.profilePicture) { avatarImg.src = userProfileData.profilePicture; avatarImg.style.display = 'block'; }
+            else { avatarImg.style.display = 'none'; avatarImg.parentElement.innerHTML = '<span style="font-size:3rem; color:#8e8e93; line-height:140px;">👤</span>'; }
+            loginOverlay.classList.add('active'); loginPasswordInput.focus();
+        }
+        function hideLoginOverlay() { loginOverlay.classList.remove('active'); loginPasswordInput.value = ''; loginErrorMsg.style.display = 'none'; }
+        function attemptSignIn() {
+            if (loginPasswordInput.value === userProfileData.password) {
+                loginErrorMsg.style.display = 'none'; loginInputsArea.style.display = 'none'; welcomeMsg.style.display = 'block'; loginSpinner.style.display = 'block';
+                setTimeout(() => { lockScreen.style.opacity = '0'; setTimeout(() => { lockScreen.style.display = 'none'; initializeDesktopRuntime(); }, 1000); }, 2000);
+            } else { loginErrorMsg.style.display = 'block'; loginPasswordInput.value = ''; loginPasswordInput.focus(); }
+        }
+        btnSignIn.addEventListener('click', attemptSignIn);
+        loginPasswordInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') attemptSignIn(); });
+
+        let customWallpaperData = null;
+        const systemApps = [
+            { id: 'browser', name: 'Safari', iconHtml: `<div class="app-icon app-icon-browser" data-app-id="browser"><div class="browser-blue-circle"><div class="browser-ticks"></div><div class="browser-diamond"></div></div></div>` },
+            { id: 'appstore', name: 'App Store', iconHtml: `<div class="app-icon app-icon-appstore" data-app-id="appstore"><svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4l6.5 13h-13L12 6z"/></svg></div>` },
+            { id: 'settings', name: 'Settings', iconHtml: `<div class="app-icon app-icon-settings" data-app-id="settings"><div class="cog-container"><svg viewBox="0 0 64 64" width="100%" height="100%"><g fill="#4a4a4a"><path d="M60.4 28.1l-5.8-1c-.4-1.5-1-3-1.8-4.4l3.5-4.8c.8-1.1.7-2.6-.3-3.6l-4.2-4.2c-1-.1-2.5-.2-3.6.5l-4.8 3.5c-1.4-.8-2.9-1.4-4.4-1.8l-1-5.8c-.2-1.3-1.4-2.3-2.8-2.3h-6c-1.4 0-2.5 1-2.8 2.3l-1 5.8c-1.5.4-3 1-4.4 1.8l-4.8-3.5c-1.1-.7-2.6-.6-3.6.4l-4.2 4.2c-1 1-1.1 2.5-.3 3.6l3.5 4.8c-.8 1.4-1.4 2.9-1.8 4.4l-5.8 1C1 28.4 0 29.5 0 30.9v6c0 1.4 1 2.5 2.3 2.8l5.8 1c.4 1.5 1 3 1.8 4.4l-3.5 4.8c-.8 1.1-.7 2.6.3 3.6l4.2 4.2c1 1 2.5 1.1 3.6.3l4.8-3.5c1.4.8 2.9 1.4 4.4 1.8l1 5.8c.2 1.3 1.4 2.3 2.8 2.3h6c1.4 0 2.5-1 2.8-2.3l1-5.8c1.5-.4 3-1 4.4-1.8l4.8 3.5c1.1.7 2.6.6 3.6-.4l4.2-4.2c1-1 1.1-2.5-.3-3.6l-3.5-4.8c.8-1.4 1.4-2.9 1.8-4.4l5.8-1c1.3-.2 2.3-1.4 2.3-2.8v-6c0-1.4-1-2.5-2.3-2.8zM32 44c-6.6 0-12-5.4-12-12s5.4-12 12-12 12 5.4 12 12-5.4 12-12 12z"/></g></svg></div></div>` },
+            { id: 'files', name: 'Files', iconHtml: `<div class="app-icon app-icon-files" data-app-id="files"><svg class="files-folder-svg" viewBox="0 0 40 32"><rect x="0" y="2" width="40" height="28" rx="4" fill="#fff" stroke="#ddd" stroke-width="1"/><rect x="0" y="2" width="20" height="28" rx="4" fill="#007aff"/><path d="M20 2 L26 8 L20 14 Z" fill="#005ec4"/><circle cx="12" cy="14" r="2.5" fill="#fff"/><circle cx="28" cy="14" r="2.5" fill="#000"/><path d="M12 20 Q20 26 28 20" stroke="#000" stroke-width="2" fill="none"/></svg></div>` },
+            { id: 'photos', name: 'Photos', iconHtml: `<div class="app-icon app-icon-photos" data-app-id="photos"><div class="photos-container"><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div></div></div>` }
+        ];
+        const gridOccupancyMatrix = {};
+
+        function initializeDesktopRuntime() {
+            desktop.style.display = 'block'; osStatusBar.style.display = 'flex'; updateOsStatusBar(); updateStatusBarColor();
+            customWallpaperData = localStorage.getItem('os_custom_wallpaper'); applySavedWallpaper(); applySavedTheme();
+            renderDesktopAndTaskbarGrid(); renderDesktopShortcuts(); initWindowMetrics(); initGenericAppWindows(); initSafariWindow(); initAppStoreWindow(); setupTaskbarSortingDrag(); initControlCenter();
+            document.addEventListener('click', (e) => { const link = e.target.closest('a'); if (link && link.getAttribute('href')) { const href = link.getAttribute('href'); if (href.startsWith('http://') || href.startsWith('https://')) { e.preventDefault(); openSafariWithUrl(href); bringToFront(safariWindow); } } });
+        }
+
+        function applySavedWallpaper() {
+            const wp = document.getElementById('pane-wallpaper-preview');
+            if (customWallpaperData) { desktop.style.backgroundImage = `url('${customWallpaperData}')`; wp.style.backgroundImage = `url('${customWallpaperData}')`; }
+            else { desktop.style.backgroundImage = `url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920')`; wp.style.backgroundImage = `url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920')`; }
+        }
+
+        function renderDesktopAndTaskbarGrid() {
+            const dgc = document.getElementById('desktop-apps-grid'), tc = document.getElementById('system-taskbar');
+            dgc.innerHTML = ''; tc.innerHTML = '';
+            const cellW = 90, cellH = 105, gap = 15;
+            for (let key in gridOccupancyMatrix) delete gridOccupancyMatrix[key];
+            systemApps.forEach((app, idx) => {
+                const tw = document.createElement('div'); tw.innerHTML = app.iconHtml; const ti = tw.firstElementChild; ti.id = `launch-${app.id}-app`;
+                ti.addEventListener('click', (e) => { e.stopPropagation(); handleTaskbarIconClick(app.id); }); tc.appendChild(ti);
+                const dw = document.createElement('div'); dw.className = 'desktop-item-container'; dw.setAttribute('data-app-id', app.id);
+                dw.innerHTML = `${app.iconHtml}<div class="desktop-app-label">${app.name}</div>`;
+                const itemsPerCol = Math.floor((window.innerHeight - 110) / (cellH + gap)) || 4;
+                const col = Math.floor(idx / itemsPerCol), row = idx % itemsPerCol;
+                dw.style.left = `${col * (cellW + gap)}px`; dw.style.top = `${row * (cellH + gap)}px`;
+                gridOccupancyMatrix[`${col},${row}`] = app.id;
+                setupDesktopIconDragEvent(dw, cellW, cellH, gap);
+                dw.addEventListener('click', () => bringToFront(getTargetWindow(app.id)));
+                dw.addEventListener('dblclick', () => { openAppRoute(app.id); bringToFront(getTargetWindow(app.id)); });
+                dgc.appendChild(dw);
+            });
+        }
+
+        function getTargetWindow(appId) { if (appId === 'settings') return settingsAppWindow; if (appId === 'browser') return safariWindow; if (appId === 'appstore') return appstoreWindow; return genericWindow; }
+        function findNearestFreeGridCell(startCellX, startCellY) { let radius = 1; while(radius < 10) { for(let x = -radius; x <= radius; x++) { for(let y = -radius; y <= radius; y++) { if(Math.abs(x) !== radius && Math.abs(y) !== radius) continue; const checkX = startCellX + x, checkY = startCellY + y; if(checkX >= 0 && checkY >= 0) { if(!gridOccupancyMatrix[`${checkX},${checkY}`]) return {x: checkX, y: checkY}; } } } radius++; } return {x: startCellX, y: startCellY + 1}; }
+
+        function setupDesktopIconDragEvent(el, cellW, cellH, gap) {
+            let startX, startY, iconLeft, iconTop, initialCellX, initialCellY, isDraggingIcon = false;
+            const appId = el.getAttribute('data-app-id') || el.getAttribute('data-shortcut-id');
+            el.addEventListener('mousedown', (e) => { if (e.target.closest('.desktop-app-label')) return; isDraggingIcon = true; el.classList.remove('snapping'); el.classList.add('dragging'); startX = e.clientX; startY = e.clientY; iconLeft = parseFloat(el.style.left); iconTop = parseFloat(el.style.top); initialCellX = Math.round(iconLeft / (cellW + gap)); initialCellY = Math.round(iconTop / (cellH + gap)); e.stopPropagation(); });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingIcon) return;
+                const dX = e.clientX - startX, dY = e.clientY - startY, targetLeft = iconLeft + dX, targetTop = iconTop + dY;
+                el.style.left = `${targetLeft}px`; el.style.top = `${targetTop}px`;
+                const hoverCellX = Math.round(targetLeft / (cellW + gap)), hoverCellY = Math.round(targetTop / (cellH + gap));
+                const occupantId = gridOccupancyMatrix[`${hoverCellX},${hoverCellY}`];
+                if (occupantId && occupantId !== appId) { const freeCell = findNearestFreeGridCell(hoverCellX, hoverCellY); const targetedOccupantElement = document.querySelector(`[data-app-id="${occupantId}"], [data-shortcut-id="${occupantId}"]`); if(targetedOccupantElement && !targetedOccupantElement.classList.contains('dragging')) { targetedOccupantElement.style.left = `${freeCell.x * (cellW + gap)}px`; targetedOccupantElement.style.top = `${freeCell.y * (cellH + gap)}px`; } }
+                else { document.querySelectorAll('.desktop-item-container').forEach((itemEl) => { const itemId = itemEl.getAttribute('data-app-id') || itemEl.getAttribute('data-shortcut-id'); if (itemId === appId) return; if (itemEl && !itemEl.classList.contains('dragging')) { for (let coordinateString in gridOccupancyMatrix) { if (gridOccupancyMatrix[coordinateString] === itemId) { const [origX, origY] = coordinateString.split(',').map(Number); itemEl.style.left = `${origX * (cellW + gap)}px`; itemEl.style.top = `${origY * (cellH + gap)}px`; } } } }); }
+            });
+            window.addEventListener('mouseup', () => {
+                if (!isDraggingIcon) return; isDraggingIcon = false; el.classList.remove('dragging'); el.classList.add('snapping');
+                const currLeft = parseFloat(el.style.left), currTop = parseFloat(el.style.top);
+                let cellX = Math.round(currLeft / (cellW + gap)), cellY = Math.round(currTop / (cellH + gap));
+                if(cellX < 0) cellX = 0; if(cellY < 0) cellY = 0;
+                const occupantId = gridOccupancyMatrix[`${cellX},${cellY}`];
+                delete gridOccupancyMatrix[`${initialCellX},${initialCellY}`];
+                if (occupantId && occupantId !== appId) { const freeCell = findNearestFreeGridCell(cellX, cellY); gridOccupancyMatrix[`${freeCell.x},${freeCell.y}`] = occupantId; gridOccupancyMatrix[`${cellX},${cellY}`] = appId; const targetedOccupantElement = document.querySelector(`[data-app-id="${occupantId}"], [data-shortcut-id="${occupantId}"]`); if(targetedOccupantElement) { targetedOccupantElement.classList.add('snapping'); targetedOccupantElement.style.left = `${freeCell.x * (cellW + gap)}px`; targetedOccupantElement.style.top = `${freeCell.y * (cellH + gap)}px`; } }
+                else { gridOccupancyMatrix[`${cellX},${cellY}`] = appId; }
+                el.style.left = `${cellX * (cellW + gap)}px`; el.style.top = `${cellY * (cellH + gap)}px`;
+                setTimeout(() => el.classList.remove('snapping'), 300); updateStatusBarColor();
+            });
+        }
+
+        function setupTaskbarSortingDrag() {
+            let activeDragIcon = null, startX = 0, iconLeftStart = 0;
+            taskbar.addEventListener('mousedown', (e) => { const icon = e.target.closest('.app-icon'); if (!icon) return; activeDragIcon = icon; activeDragIcon.classList.add('tb-dragging'); startX = e.clientX; iconLeftStart = icon.offsetLeft; e.preventDefault(); });
+            window.addEventListener('mousemove', (e) => { if (!activeDragIcon) return; const dX = e.clientX - startX; const siblingIcons = Array.from(taskbar.querySelectorAll('.app-icon')).filter(el => el !== activeDragIcon); let insertionTarget = siblingIcons.find(sib => { const rect = sib.getBoundingClientRect(); return e.clientX < rect.left + rect.width / 2; }); if (insertionTarget) taskbar.insertBefore(activeDragIcon, insertionTarget); else if (siblingIcons.length > 0) taskbar.appendChild(activeDragIcon); });
+            window.addEventListener('mouseup', () => { if (!activeDragIcon) return; activeDragIcon.classList.remove('tb-dragging'); activeDragIcon = null; });
+        }
+
+        function handleTaskbarIconClick(appId) {
+            const win = getTargetWindow(appId);
+            if (win.classList.contains('force-hidden')) { win.classList.remove('force-hidden'); win.style.display = 'flex'; win.classList.add('open'); bringToFront(win); return; }
+            const isOpen = win.classList.contains('open'), isMinimized = win.classList.contains('minimize-anim');
+            const activeWindows = Array.from(document.querySelectorAll('.window.open:not(.minimize-anim)'));
+            let isFocused = false;
+            if (activeWindows.length > 0) { const maxZ = Math.max(...activeWindows.map(w => parseInt(w.style.zIndex || 0))); if (parseInt(win.style.zIndex || 0) === maxZ && isOpen && !isMinimized) isFocused = true; }
+            if (isOpen && !isMinimized && isFocused) { if (appId === 'settings') minimizeWindow(); else if (appId === 'browser') minimizeSafariWindow(); else if (appId === 'appstore') minimizeAppStoreWindow(); else win.classList.add('minimize-anim'); }
+            else { openAppRoute(appId); bringToFront(win); }
+        }
+        function openAppRoute(appId) { if (appId === 'settings') restoreWindow(); else if (appId === 'browser') restoreSafariWindow(); else if (appId === 'appstore') restoreAppStoreWindow(); else openGenericAppWindow(appId); }
+
+        const settingsAppWindow = document.getElementById('app-settings-window'), settingsTitlebar = document.getElementById('app-settings-titlebar'), settingsAppSidebar = document.getElementById('app-settings-sidebar');
+        const winCloseBtn = document.getElementById('win-close-btn'), winMinBtn = document.getElementById('win-min-btn'), winExpandBtn = document.getElementById('win-expand-btn');
+        const topHotzone = document.getElementById('top-hotzone'), bottomHotzone = document.getElementById('bottom-hotzone');
+        let isFullscreen = false, winLeft, winTop, winWidth, winHeight;
+        const minWidth = 500, minHeight = 400;
+        function initWindowMetrics() { winLeft = window.innerWidth * 0.15; winTop = window.innerHeight * 0.12; winWidth = window.innerWidth * 0.7; winHeight = window.innerHeight * 0.72; applyWindowMetrics(); }
+        function applyWindowMetrics() { settingsAppWindow.style.left = `${winLeft}px`; settingsAppWindow.style.top = `${winTop}px`; settingsAppWindow.style.width = `${winWidth}px`; settingsAppWindow.style.height = `${winHeight}px`; }
+        function minimizeWindow() { settingsAppWindow.classList.add('state-transition'); settingsAppWindow.classList.add('minimize-anim'); if (isFullscreen) { taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); deactivateFullscreenHotzones(); } else taskbar.classList.remove('fullscreen-hidden'); setTimeout(() => { settingsAppWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); }
+        function restoreWindow() { settingsAppWindow.classList.remove('force-hidden'); settingsAppWindow.style.display = 'flex'; settingsAppWindow.classList.add('state-transition'); settingsAppWindow.classList.remove('minimize-anim'); settingsAppWindow.classList.add('open'); if (isFullscreen) { taskbar.classList.add('fullscreen-hidden'); activateFullscreenHotzones(); } setTimeout(() => { settingsAppWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); }
+        winCloseBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsAppWindow.classList.add('state-transition'); settingsAppWindow.classList.remove('open', 'fullscreen', 'minimize-anim'); isFullscreen = false; settingsTitlebar.classList.remove('reveal'); settingsAppSidebar.classList.remove('reveal-tabs'); taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); deactivateFullscreenHotzones(); setTimeout(() => { settingsAppWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); });
+        winMinBtn.addEventListener('click', (e) => { e.stopPropagation(); minimizeWindow(); });
+        winExpandBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsAppWindow.classList.add('state-transition'); toggleFullscreen(); setTimeout(() => settingsAppWindow.classList.remove('state-transition'), 700); });
+        function toggleFullscreen() { if(!isFullscreen) { settingsAppWindow.classList.add('fullscreen'); taskbar.classList.add('fullscreen-hidden'); isFullscreen = true; activateFullscreenHotzones(); } else { settingsAppWindow.classList.remove('fullscreen'); settingsTitlebar.classList.remove('reveal'); settingsAppSidebar.classList.remove('reveal-tabs'); taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); isFullscreen = false; deactivateFullscreenHotzones(); } updateStatusBarColor(); }
+        function activateFullscreenHotzones() { topHotzone.style.display = 'block'; bottomHotzone.style.display = 'block'; topHotzone.style.pointerEvents = 'auto'; bottomHotzone.style.pointerEvents = 'auto'; }
+        function deactivateFullscreenHotzones() { topHotzone.style.display = 'none'; bottomHotzone.style.display = 'none'; topHotzone.style.pointerEvents = 'none'; bottomHotzone.style.pointerEvents = 'none'; }
+
+        topHotzone.addEventListener('mouseenter', () => { if(isFullscreen) { settingsTitlebar.classList.add('reveal'); settingsAppSidebar.classList.add('reveal-tabs'); } if(isSafFullscreen) safariTopUi.classList.add('reveal'); if(isAppstoreFullscreen) { appstoreTitlebar.classList.add('reveal'); appstoreAppSidebar.classList.add('reveal-tabs'); } topHotzone.style.pointerEvents = 'none'; });
+        document.addEventListener('mousemove', (e) => {
+            const isFs = isFullscreen || isSafFullscreen || isAppstoreFullscreen;
+            if (isFs) { if (e.clientY > window.innerHeight - 30) taskbar.classList.add('fullscreen-show'); else if (e.clientY < window.innerHeight - 90) taskbar.classList.remove('fullscreen-show'); }
+            if (isSplitViewActive && splitViewMainWin && splitViewMainWin.classList.contains('fullscreen')) { if (e.clientX <= 15) splitViewSideWins.forEach(w => w.style.transform = 'translateX(0)'); else if (e.clientX > 200) splitViewSideWins.forEach(w => w.style.transform = 'translateX(-150%)'); }
+            if (!isFs) return;
+            const x = e.clientX, y = e.clientY; let hideUI = true;
+            if (y <= 40) hideUI = false;
+            if (isFullscreen && settingsTitlebar.classList.contains('reveal')) { if (y <= 42) hideUI = false; if (x <= settingsAppSidebar.offsetWidth) hideUI = false; }
+            if (isAppstoreFullscreen && appstoreTitlebar.classList.contains('reveal')) { if (y <= 42) hideUI = false; if (x <= appstoreAppSidebar.offsetWidth) hideUI = false; }
+            if (isSafFullscreen && safariTopUi.classList.contains('reveal')) { const uRect = safariTopUi.getBoundingClientRect(); if (x >= uRect.left && x <= uRect.right && y >= uRect.top && y <= uRect.bottom) hideUI = false; }
+            if (hideUI) { if (isFullscreen) { settingsTitlebar.classList.remove('reveal'); settingsAppSidebar.classList.remove('reveal-tabs'); topHotzone.style.pointerEvents = 'auto'; } if (isAppstoreFullscreen) { appstoreTitlebar.classList.remove('reveal'); appstoreAppSidebar.classList.remove('reveal-tabs'); topHotzone.style.pointerEvents = 'auto'; } if (isSafFullscreen && !safariMenuOpen) { safariTopUi.classList.remove('reveal'); topHotzone.style.pointerEvents = 'auto'; } }
+        });
+
+        let isDragging = false, isResizing = false, currentHandle = '', offsetX, offsetY, startX, startY, startWidth, startHeight, startLeft, startTop;
+        settingsTitlebar.addEventListener('mousedown', (e) => { if (isFullscreen || e.target.closest('.window-controls') || isSplitViewActive || isExposeActive) return; isDragging = true; settingsAppWindow.classList.remove('layout-transition', 'state-transition'); offsetX = e.clientX - winLeft; offsetY = e.clientY - winTop; });
+        document.querySelectorAll('#app-settings-window .resize-handle').forEach(handle => { handle.addEventListener('mousedown', (e) => { if (isFullscreen || isSplitViewActive || isExposeActive) return; isResizing = true; settingsAppWindow.classList.remove('layout-transition', 'state-transition'); currentHandle = handle.getAttribute('data-handle'); startX = e.clientX; startY = e.clientY; startWidth = winWidth; startHeight = winHeight; startLeft = winLeft; startTop = winTop; e.preventDefault(); }); });
+        window.addEventListener('mousemove', (e) => { if (isDragging) { winLeft = e.clientX - offsetX; winTop = e.clientY - offsetY; applyWindowMetrics(); } else if (isResizing) { const deltaX = e.clientX - startX, deltaY = e.clientY - startY; if (currentHandle.includes('n')) { const nextHeight = startHeight - deltaY; if (nextHeight >= minHeight) { winHeight = nextHeight; winTop = startTop + deltaY; } } if (currentHandle.includes('s')) { const nextHeight = startHeight + deltaY; if (nextHeight >= minHeight) winHeight = nextHeight; } if (currentHandle.includes('e')) { const nextWidth = startWidth + deltaX; if (nextWidth >= minWidth) winWidth = nextWidth; } if (currentHandle.includes('w')) { const nextWidth = startWidth - deltaX; if (nextWidth >= minWidth) { winWidth = nextWidth; winLeft = startLeft + deltaX; } } applyWindowMetrics(); } });
+        window.addEventListener('mouseup', () => { if (isDragging || isResizing) updateStatusBarColor(); isDragging = false; isResizing = false; currentHandle = ''; });
+
+        const appstoreWindow = document.getElementById('app-appstore-window'), appstoreTitlebar = document.getElementById('app-appstore-titlebar'), appstoreAppSidebar = document.getElementById('app-appstore-sidebar'), appstoreHeaderLabel = document.getElementById('appstore-pane-header-label');
+        let asLeft = 150, asTop = 80, asWidth = 850, asHeight = 550, isAsDragging = false, isAsResizing = false, isAppstoreFullscreen = false;
+        function initAppStoreWindow() {
+            appstoreWindow.style.left = `${asLeft}px`; appstoreWindow.style.top = `${asTop}px`; appstoreWindow.style.width = `${asWidth}px`; appstoreWindow.style.height = `${asHeight}px`;
+            document.getElementById('appstore-close-btn').addEventListener('click', (e) => { e.stopPropagation(); appstoreWindow.classList.add('state-transition'); appstoreWindow.classList.remove('open', 'fullscreen', 'minimize-anim'); isAppstoreFullscreen = false; appstoreTitlebar.classList.remove('reveal'); appstoreAppSidebar.classList.remove('reveal-tabs'); taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); deactivateFullscreenHotzones(); setTimeout(() => { appstoreWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); });
+            document.getElementById('appstore-min-btn').addEventListener('click', (e) => { e.stopPropagation(); minimizeAppStoreWindow(); });
+            document.getElementById('appstore-expand-btn').addEventListener('click', (e) => { e.stopPropagation(); appstoreWindow.classList.add('state-transition'); toggleAppStoreFullscreen(); setTimeout(() => appstoreWindow.classList.remove('state-transition'), 700); });
+            document.querySelectorAll('[data-appstore-tab]').forEach(item => { item.addEventListener('click', function() { document.querySelectorAll('[data-appstore-tab]').forEach(i => i.classList.remove('active')); this.classList.add('active'); const targetTab = this.getAttribute('data-appstore-tab'); appstoreHeaderLabel.textContent = this.querySelector('.nav-label').textContent; document.querySelectorAll('#app-appstore-main .settings-pane-content').forEach(pane => pane.classList.remove('active')); if (targetTab) document.getElementById(`appstore-pane-${targetTab}`).classList.add('active'); }); });
+        }
+        function minimizeAppStoreWindow() { appstoreWindow.classList.add('state-transition'); appstoreWindow.classList.add('minimize-anim'); if (isAppstoreFullscreen) { taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); deactivateFullscreenHotzones(); } setTimeout(() => { appstoreWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); }
+        function restoreAppStoreWindow() { appstoreWindow.classList.remove('force-hidden'); appstoreWindow.style.display = 'flex'; appstoreWindow.classList.add('state-transition'); appstoreWindow.classList.remove('minimize-anim'); appstoreWindow.classList.add('open'); if (isAppstoreFullscreen) { taskbar.classList.add('fullscreen-hidden'); activateFullscreenHotzones(); } setTimeout(() => { appstoreWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); }
+        function toggleAppStoreFullscreen() { if(!isAppstoreFullscreen) { appstoreWindow.classList.add('fullscreen'); taskbar.classList.add('fullscreen-hidden'); isAppstoreFullscreen = true; activateFullscreenHotzones(); } else { appstoreWindow.classList.remove('fullscreen'); appstoreTitlebar.classList.remove('reveal'); appstoreAppSidebar.classList.remove('reveal-tabs'); taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); isAppstoreFullscreen = false; deactivateFullscreenHotzones(); } updateStatusBarColor(); }
+        appstoreTitlebar.addEventListener('mousedown', (e) => { if (appstoreWindow.classList.contains('fullscreen') || e.target.closest('.window-controls') || isSplitViewActive || isExposeActive) return; isAsDragging = true; appstoreWindow.classList.remove('layout-transition', 'state-transition'); offsetX = e.clientX - asLeft; offsetY = e.clientY - asTop; });
+        document.querySelectorAll('#app-appstore-window .resize-handle').forEach(handle => { handle.addEventListener('mousedown', (e) => { if (appstoreWindow.classList.contains('fullscreen') || isSplitViewActive || isExposeActive) return; isAsResizing = true; appstoreWindow.classList.remove('layout-transition', 'state-transition'); currentHandle = handle.getAttribute('data-handle'); startX = e.clientX; startY = e.clientY; startWidth = asWidth; startHeight = asHeight; startLeft = asLeft; startTop = asTop; e.preventDefault(); }); });
+        window.addEventListener('mousemove', (e) => { if (isAsDragging) { asLeft = e.clientX - offsetX; asTop = e.clientY - offsetY; appstoreWindow.style.left = `${asLeft}px`; appstoreWindow.style.top = `${asTop}px`; } else if (isAsResizing) { const changeX = e.clientX - startX, changeY = e.clientY - startY; if (currentHandle.includes('n')) { const nextH = startHeight - changeY; if (nextH >= 350) { asHeight = nextH; asTop = startTop + changeY; } } if (currentHandle.includes('s')) { const nextH = startHeight + changeY; if (nextH >= 350) asHeight = nextH; } if (currentHandle.includes('e')) { const nextW = startWidth + changeX; if (nextW >= 500) asWidth = nextW; } if (currentHandle.includes('w')) { const nextW = startWidth - changeX; if (nextW >= 500) { asWidth = nextW; asLeft = startLeft + changeX; } } appstoreWindow.style.width = `${asWidth}px`; appstoreWindow.style.height = `${asHeight}px`; appstoreWindow.style.left = `${asLeft}px`; appstoreWindow.style.top = `${asTop}px`; } });
+        window.addEventListener('mouseup', () => { if (isAsDragging || isAsResizing) updateStatusBarColor(); isAsDragging = false; isAsResizing = false; });
+
+        const genericWindow = document.getElementById('app-generic-window'), genericTitlebar = document.getElementById('app-generic-titlebar'), genericAppTitle = document.getElementById('generic-app-title');
+        let genLeft = 220, genTop = 150, genWidth = 600, genHeight = 450, isGenDragging = false, isGenResizing = false;
+        function initGenericAppWindows() {
+            genericWindow.style.left = `${genLeft}px`; genericWindow.style.top = `${genTop}px`; genericWindow.style.width = `${genWidth}px`; genericWindow.style.height = `${genHeight}px`;
+            document.getElementById('generic-close-btn').addEventListener('click', () => { genericWindow.classList.remove('open'); updateStatusBarColor(); });
+            document.getElementById('generic-min-btn').addEventListener('click', () => { genericWindow.classList.add('minimize-anim'); updateStatusBarColor(); });
+            document.getElementById('generic-expand-btn').addEventListener('click', () => { genericWindow.classList.toggle('fullscreen'); updateStatusBarColor(); });
+        }
+        function openGenericAppWindow(appId) { const appMetadata = systemApps.find(a => a.id === appId); genericAppTitle.textContent = appMetadata ? appMetadata.name : 'Application'; genericWindow.classList.remove('force-hidden'); genericWindow.style.display = 'flex'; genericWindow.classList.remove('minimize-anim'); genericWindow.classList.add('open'); updateStatusBarColor(); }
+        genericTitlebar.addEventListener('mousedown', (e) => { if (genericWindow.classList.contains('fullscreen') || e.target.closest('.window-controls') || isSplitViewActive || isExposeActive) return; isGenDragging = true; genericWindow.classList.remove('layout-transition', 'state-transition'); offsetX = e.clientX - genLeft; offsetY = e.clientY - genTop; });
+        document.querySelectorAll('#app-generic-window .resize-handle').forEach(handle => { handle.addEventListener('mousedown', (e) => { if (genericWindow.classList.contains('fullscreen') || isSplitViewActive || isExposeActive) return; isGenResizing = true; genericWindow.classList.remove('layout-transition', 'state-transition'); currentHandle = handle.getAttribute('data-handle'); startX = e.clientX; startY = e.clientY; startWidth = genWidth; startHeight = genHeight; startLeft = genLeft; startTop = genTop; e.preventDefault(); }); });
+        window.addEventListener('mousemove', (e) => { if (isGenDragging) { genLeft = e.clientX - offsetX; genTop = e.clientY - offsetY; genericWindow.style.left = `${genLeft}px`; genericWindow.style.top = `${genTop}px`; } else if (isGenResizing) { const changeX = e.clientX - startX, changeY = e.clientY - startY; if (currentHandle.includes('n')) { const nextH = startHeight - changeY; if (nextH >= 300) { genHeight = nextH; genTop = startTop + changeY; } } if (currentHandle.includes('s')) { const nextH = startHeight + changeY; if (nextH >= 300) genHeight = nextH; } if (currentHandle.includes('e')) { const nextW = startWidth + changeX; if (nextW >= 400) genWidth = nextW; } if (currentHandle.includes('w')) { const nextW = startWidth - changeX; if (nextW >= 400) { genWidth = nextW; genLeft = startLeft + changeX; } } genericWindow.style.width = `${genWidth}px`; genericWindow.style.height = `${genHeight}px`; genericWindow.style.left = `${genLeft}px`; genericWindow.style.top = `${genTop}px`; } });
+        window.addEventListener('mouseup', () => { if (isGenDragging || isGenResizing) updateStatusBarColor(); isGenDragging = false; isGenResizing = false; });
+
+        const tabHeaderLabel = document.getElementById('pane-tab-header-label');
+        document.querySelectorAll('.settings-nav-item').forEach(item => { if (item.hasAttribute('data-appstore-tab')) return; item.addEventListener('click', function() { document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active')); this.classList.add('active'); const targetTab = this.getAttribute('data-tab'); tabHeaderLabel.textContent = this.querySelector('.nav-label').textContent; document.querySelectorAll('.settings-pane-content').forEach(pane => pane.classList.remove('active')); if (targetTab === 'about') document.getElementById('pane-about').classList.add('active'); if (targetTab === 'account') document.getElementById('pane-account').classList.add('active'); if (targetTab === 'system-status') document.getElementById('pane-system-status').classList.add('active'); if (targetTab === 'wifi') document.getElementById('pane-wifi').classList.add('active'); if (targetTab === 'bluetooth') document.getElementById('pane-bluetooth').classList.add('active'); if (targetTab === 'dock') document.getElementById('pane-dock').classList.add('active'); if (targetTab === 'desktop-settings') document.getElementById('pane-desktop-settings').classList.add('active'); }); });
+        function openSettingsTab(tab) { restoreWindow(); bringToFront(settingsAppWindow); setTimeout(() => { document.querySelector(`[data-tab="${tab}"]`).click(); }, 100); }
+
+        const paneAvatarImg = document.getElementById('pane-avatar-img'), paneAvatarInput = document.getElementById('pane-avatar-input'), btnChangeAvatar = document.getElementById('btn-change-avatar');
+        const paneUsernameInput = document.getElementById('pane-username-input'), panePasswordInput = document.getElementById('pane-password-input'), btnSaveCredentials = document.getElementById('btn-save-credentials');
+        function populatePaneAccountData() { if (userProfileData) { paneUsernameInput.value = userProfileData.username; document.getElementById('about-device-name').textContent = `${userProfileData.username}'s Computer`; if (userProfileData.profilePicture) { paneAvatarImg.src = userProfileData.profilePicture; paneAvatarImg.style.display = 'block'; } else paneAvatarImg.style.display = 'none'; } }
+        btnChangeAvatar.addEventListener('click', () => paneAvatarInput.click());
+        paneAvatarInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(event) { userProfileData.profilePicture = event.target.result; paneAvatarImg.src = event.target.result; paneAvatarImg.style.display = 'block'; localStorage.setItem('os_user_profile', JSON.stringify(userProfileData)); }; reader.readAsDataURL(file); } });
+        btnSaveCredentials.addEventListener('click', () => { const updatedUsername = paneUsernameInput.value.trim(), updatedPassword = panePasswordInput.value; if(updatedUsername.length >= 2) userProfileData.username = updatedUsername; if(updatedPassword.length >= 4) userProfileData.password = updatedPassword; localStorage.setItem('os_user_profile', JSON.stringify(userProfileData)); populatePaneAccountData(); alert('Security profile metrics updated successfully.'); });
+        const paneWallpaperInput = document.getElementById('pane-wallpaper-input'), btnUploadWallpaper = document.getElementById('btn-upload-wallpaper'), btnRemoveWallpaper = document.getElementById('btn-remove-wallpaper');
+        btnUploadWallpaper.addEventListener('click', () => paneWallpaperInput.click());
+        paneWallpaperInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(event) { customWallpaperData = event.target.result; localStorage.setItem('os_custom_wallpaper', customWallpaperData); applySavedWallpaper(); }; reader.readAsDataURL(file); } });
+        btnRemoveWallpaper.addEventListener('click', () => { customWallpaperData = null; localStorage.removeItem('os_custom_wallpaper'); paneWallpaperInput.value = ''; applySavedWallpaper(); });
+        const accentPickers = document.querySelectorAll('.accent-circle'), customColorPicker = document.getElementById('custom-color-picker');
+        let chosenActiveCircleElement = document.querySelector('.accent-circle-none');
+        const activeAccentColor = localStorage.getItem('os_accent_color');
+        if (activeAccentColor) { accentPickers.forEach(circle => { if (circle.getAttribute('data-color') === activeAccentColor) { circle.classList.add('selected'); chosenActiveCircleElement = circle; } else circle.classList.remove('selected'); }); }
+        accentPickers.forEach(circle => { circle.addEventListener('click', function() { if (this.classList.contains('selected')) customColorPicker.click(); else { accentPickers.forEach(c => c.classList.remove('selected')); this.classList.add('selected'); chosenActiveCircleElement = this; const colorVal = this.getAttribute('data-color'); if (colorVal) localStorage.setItem('os_accent_color', colorVal); else localStorage.removeItem('os_accent_color'); updateAccentColorMode(colorVal); } }); });
+        customColorPicker.addEventListener('input', (e) => { const colorVal = e.target.value; if (chosenActiveCircleElement && !chosenActiveCircleElement.classList.contains('accent-circle-none')) { chosenActiveCircleElement.setAttribute('data-color', colorVal); chosenActiveCircleElement.style.background = colorVal; localStorage.setItem('os_accent_color', colorVal); updateAccentColorMode(colorVal); } });
+        function updateAccentColorMode(colorVal) { if (!colorVal) { document.documentElement.style.removeProperty('--accent-color'); document.documentElement.style.removeProperty('--accent-tint-titlebar'); } else { document.documentElement.style.setProperty('--accent-color', colorVal); document.documentElement.style.setProperty('--accent-tint-titlebar', colorVal + '25'); } }
+        document.querySelectorAll('.appearance-option').forEach(opt => { opt.addEventListener('click', function() { document.querySelectorAll('.appearance-option').forEach(o => o.classList.remove('selected')); this.classList.add('selected'); const selectedTheme = this.getAttribute('data-theme'); localStorage.setItem('os_theme_mode', selectedTheme); setThemeMode(selectedTheme); updateStatusBarColor(); }); });
+        function applySavedTheme() { const savedTheme = localStorage.getItem('os_theme_mode') || 'light'; document.querySelectorAll('.appearance-option').forEach(o => { if(o.getAttribute('data-theme') === savedTheme) o.classList.add('selected'); else o.classList.remove('selected'); }); setThemeMode(savedTheme); }
+        function setThemeMode(mode) { document.body.classList.remove('theme-dark', 'theme-light-active'); if (mode === 'dark') document.body.classList.add('theme-dark'); else if (mode === 'light') document.body.classList.add('theme-light-active'); else if (mode === 'dynamic') evaluateDynamicTheme(); }
+        function evaluateDynamicTheme() { const hours = new Date().getHours(); document.body.classList.remove('theme-dark', 'theme-light-active'); if (hours >= 6 && hours < 18) document.body.classList.add('theme-light-active'); else document.body.classList.add('theme-dark'); }
+        document.getElementById('toggle-vpn').addEventListener('change', (e) => { osState.vpnActive = e.target.checked; updateOsStatusBar(); });
+        document.getElementById('toggle-charging').addEventListener('change', (e) => { osState.isCharging = e.target.checked; updateOsStatusBar(); });
+        document.getElementById('battery-slider').addEventListener('input', (e) => { osState.batteryLevel = parseInt(e.target.value); document.getElementById('battery-level-display').textContent = osState.batteryLevel + '%'; updateOsStatusBar(); });
+
+        let isFocusMenuActive = false;
+        function initControlCenter() {
+            const ccBtn = document.getElementById('status-cc-btn'), ccOverlay = document.getElementById('cc-overlay'), cc = document.getElementById('control-center');
+            const ccWifi = document.getElementById('cc-wifi'), ccBt = document.getElementById('cc-bt'), ccBtIconToggle = document.getElementById('cc-bt-icon-toggle'), ccBtTextArea = document.getElementById('cc-bt-text-area'), ccBtMenu = document.getElementById('cc-bt-menu'), ccBtSubtitle = document.getElementById('cc-bt-subtitle');
+            const ccAirdrop = document.getElementById('cc-airdrop'), ccAirdropMenu = document.getElementById('cc-airdrop-menu'), ccAirdropSubtitle = document.getElementById('cc-airdrop-subtitle'), btSettingsBtn = document.getElementById('bt-settings-btn');
+            const ccFocus = document.getElementById('cc-focus'), focusMenu = document.getElementById('focus-menu');
+            function closeAllMenus() { ccBtMenu.classList.remove('open'); ccAirdropMenu.classList.remove('open'); }
+            function toggleControlCenter(force) { const isOpen = force !== undefined ? force : !cc.classList.contains('open'); if (isOpen) { cc.classList.add('open'); ccOverlay.classList.add('open'); } else { cc.classList.remove('open'); ccOverlay.classList.remove('open'); closeAllMenus(); toggleFocusMenu(false); } }
+            ccBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleControlCenter(); });
+            ccOverlay.addEventListener('click', () => toggleControlCenter(false));
+            ccWifi.addEventListener('click', (e) => { e.stopPropagation(); osState.wifiOn = !osState.wifiOn; ccWifi.classList.toggle('off', !osState.wifiOn); document.getElementById('cc-wifi-subtitle').textContent = osState.wifiOn ? 'Connected' : 'Disconnected'; });
+            ccBtIconToggle.addEventListener('click', (e) => { e.stopPropagation(); osState.btOn = !osState.btOn; ccBt.classList.toggle('off', !osState.btOn); ccBtSubtitle.textContent = osState.btOn ? 'On' : 'Off'; });
+            ccBtTextArea.addEventListener('click', (e) => { e.stopPropagation(); const isMenuOpen = ccBtMenu.classList.contains('open'); closeAllMenus(); if (!isMenuOpen) ccBtMenu.classList.add('open'); });
+            btSettingsBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleControlCenter(false); openSettingsTab('bluetooth'); });
+            ccAirdrop.addEventListener('click', (e) => { e.stopPropagation(); const isMenuOpen = ccAirdropMenu.classList.contains('open'); closeAllMenus(); if (!isMenuOpen) ccAirdropMenu.classList.add('open'); });
+            ccAirdropMenu.querySelectorAll('.cc-menu-item').forEach(item => { item.addEventListener('click', (e) => { e.stopPropagation(); ccAirdropMenu.querySelectorAll('.cc-menu-item').forEach(i => i.classList.remove('selected')); item.classList.add('selected'); const mode = item.getAttribute('data-airdrop'); if (mode === 'off') { ccAirdrop.classList.add('off'); ccAirdropSubtitle.textContent = 'Off'; } else { ccAirdrop.classList.remove('off'); ccAirdropSubtitle.textContent = mode === 'contacts' ? 'Contacts Only' : 'Everyone'; } setTimeout(() => closeAllMenus(), 150); }); });
+            function toggleFocusMenu(force) { isFocusMenuActive = force !== undefined ? force : !isFocusMenuActive; if (isFocusMenuActive) { cc.classList.add('focus-active'); cc.classList.remove('focus-closing'); } else { cc.classList.add('focus-closing'); setTimeout(() => { cc.classList.remove('focus-active'); cc.classList.remove('focus-closing'); }, 200); } }
+            ccFocus.addEventListener('click', (e) => { e.stopPropagation(); toggleFocusMenu(); });
+            focusMenu.querySelectorAll('.focus-btn').forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); const isActive = btn.classList.contains('active'); focusMenu.querySelectorAll('.focus-btn').forEach(b => b.classList.remove('active')); const mainFocusIcon = ccFocus.querySelector('.cc-btn-icon'), mainFocusTitle = ccFocus.querySelector('.cc-btn-title'); if (!isActive) { btn.classList.add('active'); mainFocusIcon.innerHTML = btn.querySelector('.focus-icon').innerHTML; mainFocusTitle.textContent = btn.querySelector('.focus-title').textContent; } else { mainFocusIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="#fff" style="width: 18px; height: 18px;"><path d="M12 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 4c2.2 0 4 1.8 4 4v1H8v-1c0-2.2 1.8-4 4-4z"/></svg>`; mainFocusTitle.textContent = 'Focus'; } }); });
+            document.getElementById('cc-splitview').addEventListener('click', (e) => { e.stopPropagation(); toggleControlCenter(false); toggleSplitView(); });
+            document.getElementById('cc-expose').addEventListener('click', (e) => { e.stopPropagation(); toggleControlCenter(false); toggleExpose(); });
+        }
+
+        let isSplitViewActive = false, splitViewMainWin = null, splitViewSideWins = [], splitViewStates = {};
+        function toggleSplitView() {
+            isSplitViewActive = !isSplitViewActive;
+            document.body.classList.toggle('split-view-active', isSplitViewActive);
+            if (isSplitViewActive) {
+                const openWins = Array.from(document.querySelectorAll('.window.open:not(.minimize-anim)')).filter(w => !w.classList.contains('force-hidden'));
+                if (openWins.length < 2) { isSplitViewActive = false; document.body.classList.remove('split-view-active'); return; }
+                openWins.sort((a, b) => parseInt(b.style.zIndex || 0) - parseInt(a.style.zIndex || 0));
+                splitViewMainWin = openWins[0]; splitViewSideWins = openWins.slice(1); splitViewStates = {};
+                [splitViewMainWin, ...splitViewSideWins].forEach(w => { splitViewStates[w.id] = { left: w.style.left, top: w.style.top, width: w.style.width, height: w.style.height }; });
+                applySplitViewLayout();
+            } else {
+                [splitViewMainWin, ...splitViewSideWins].forEach(w => { if(!w) return; const st = splitViewStates[w.id]; if (st) { w.style.left = st.left; w.style.top = st.top; w.style.width = st.width; w.style.height = st.height; } w.classList.remove('split-main', 'split-side', 'layout-transition'); w.onclick = null; });
+                splitViewMainWin = null; splitViewSideWins = [];
+            }
+        }
+        function applySplitViewLayout() {
+            if (!isSplitViewActive) return;
+            const gap = 20, totalH = window.innerHeight - 120, sideW = window.innerWidth * 0.22, mainW = window.innerWidth - sideW - 3 * gap;
+            splitViewMainWin.classList.add('layout-transition', 'split-main');
+            splitViewMainWin.style.left = `${sideW + 2 * gap}px`; splitViewMainWin.style.top = `40px`; splitViewMainWin.style.width = `${mainW}px`; splitViewMainWin.style.height = `${totalH}px`;
+            const sideCount = splitViewSideWins.length, sideH = (totalH - (sideCount - 1) * gap) / sideCount;
+            splitViewSideWins.forEach((w, idx) => {
+                w.classList.add('layout-transition', 'split-side'); w.classList.remove('split-main');
+                w.style.left = `${gap}px`; w.style.top = `${40 + idx * (sideH + gap)}px`; w.style.width = `${sideW}px`; w.style.height = `${sideH}px`;
+                w.onclick = (e) => {
+                    if (!isSplitViewActive) return;
+                    const targetState = { left: w.style.left, top: w.style.top, width: w.style.width, height: w.style.height };
+                    const mainState = { left: splitViewMainWin.style.left, top: splitViewMainWin.style.top, width: splitViewMainWin.style.width, height: splitViewMainWin.style.height };
+                    splitViewMainWin.style.left = targetState.left; splitViewMainWin.style.top = targetState.top; splitViewMainWin.style.width = targetState.width; splitViewMainWin.style.height = targetState.height;
+                    w.style.left = mainState.left; w.style.top = mainState.top; w.style.width = mainState.width; w.style.height = mainState.height;
+                    const tempWin = splitViewMainWin; splitViewMainWin = w; splitViewSideWins[idx] = tempWin;
+                    splitViewMainWin.classList.add('split-main'); splitViewMainWin.classList.remove('split-side');
+                    splitViewSideWins[idx].classList.remove('split-main'); splitViewSideWins[idx].classList.add('split-side');
+                };
+            });
+        }
+
+        let isExposeActive = false;
+        function toggleExpose() {
+            isExposeActive = !isExposeActive;
+            document.body.classList.toggle('expose-active', isExposeActive);
+            if (isExposeActive) {
+                const openWins = Array.from(document.querySelectorAll('.window.open:not(.minimize-anim)')).filter(w => !w.classList.contains('force-hidden'));
+                openWins.forEach(w => {
+                    w.classList.add('expose-win', 'layout-transition');
+                    w.dataset.prevLeft = w.style.left; w.dataset.prevTop = w.style.top; w.dataset.prevWidth = w.style.width; w.dataset.prevHeight = w.style.height;
+                    const xBtn = document.createElement('div'); xBtn.className = 'expose-x'; xBtn.textContent = '✕';
+                    xBtn.onclick = (e) => { e.stopPropagation(); w.classList.remove('open'); w.classList.add('force-hidden'); w.style.display = 'none'; toggleExpose(); toggleExpose(); };
+                    w.appendChild(xBtn);
+                    w.onclick = (e) => { if (e.target.classList.contains('expose-x')) return; toggleExpose(false); bringToFront(w); };
+                });
+                layoutExposeWindows(openWins);
+            } else {
+                document.querySelectorAll('.expose-win').forEach(w => {
+                    w.classList.remove('expose-win', 'layout-transition');
+                    w.style.left = w.dataset.prevLeft || w.style.left; w.style.top = w.dataset.prevTop || w.style.top; w.style.width = w.dataset.prevWidth || w.style.width; w.style.height = w.dataset.prevHeight || w.style.height;
+                    const xBtn = w.querySelector('.expose-x'); if (xBtn) xBtn.remove(); w.onclick = null;
+                });
+            }
+        }
+        function layoutExposeWindows(wins) {
+            const n = wins.length; if (n === 0) return;
+            const cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n / cols);
+            const wW = (window.innerWidth / cols) * 0.8, wH = (window.innerHeight / rows) * 0.7;
+            const gapX = (window.innerWidth - wW * cols) / (cols + 1), gapY = (window.innerHeight - wH * rows) / (rows + 1);
+            wins.forEach((w, i) => { const r = Math.floor(i / cols), c = i % cols; w.style.left = `${gapX + c * (wW + gapX)}px`; w.style.top = `${gapY + r * (wH + gapY)}px`; w.style.width = `${wW}px`; w.style.height = `${wH}px`; });
+        }
+        desktop.addEventListener('click', (e) => { if (isExposeActive && e.target === desktop) toggleExpose(false); });
+
+        const safariWindow = document.getElementById('app-safari-window'), safariTitlebar = document.getElementById('app-safari-titlebar'), safariTopUi = document.getElementById('safari-top-ui'), safariToolbar = document.getElementById('safari-toolbar');
+        const safariSearchInput = document.getElementById('safari-search-input'), safariBackBtn = document.getElementById('safari-back-btn'), safariMenuBtn = document.getElementById('safari-menu-btn'), safariMenuPanel = document.getElementById('safari-menu-panel');
+        const safariTabsContainer = document.getElementById('safari-tabs'), safariBookmarksContainer = document.getElementById('safari-bookmarks'), safariWebview = document.getElementById('safari-webview'), safariStartPage = document.getElementById('safari-start-page');
+        let safLeft = 150, safTop = 80, safWidth = 900, safHeight = 600, isSafDragging = false, isSafResizing = false, safariMenuOpen = false, isSafFullscreen = false;
+        let safariTabs = [], activeSafariTabId = null, nextSafariTabId = 1;
+        let safariBookmarks = JSON.parse(localStorage.getItem('os_safari_bookmarks') || '[]'), desktopShortcuts = JSON.parse(localStorage.getItem('os_desktop_shortcuts') || '[]');
+
+        function initSafariWindow() {
+            safariWindow.style.left = `${safLeft}px`; safariWindow.style.top = `${safTop}px`; safariWindow.style.width = `${safWidth}px`; safariWindow.style.height = `${safHeight}px`;
+            document.getElementById('safari-close-btn').addEventListener('click', (e) => { e.stopPropagation(); safariWindow.classList.add('state-transition'); safariWindow.classList.remove('open', 'fullscreen', 'minimize-anim'); isSafFullscreen = false; safariTopUi.classList.remove('reveal'); taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); deactivateFullscreenHotzones(); setTimeout(() => { safariWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); });
+            document.getElementById('safari-min-btn').addEventListener('click', (e) => { e.stopPropagation(); minimizeSafariWindow(); });
+            document.getElementById('safari-expand-btn').addEventListener('click', (e) => { e.stopPropagation(); safariWindow.classList.add('state-transition'); toggleSafariFullscreen(); setTimeout(() => safariWindow.classList.remove('state-transition'), 700); });
+            createNewTab();
+            safariSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); navigateTo(safariSearchInput.value.trim()); safariSearchInput.blur(); } });
+            safariBackBtn.addEventListener('click', (e) => { e.stopPropagation(); goBack(); });
+            safariMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSafariMenu(); });
+            safariMenuPanel.querySelectorAll('.safari-menu-item').forEach(item => { item.addEventListener('click', (e) => { e.stopPropagation(); const action = item.getAttribute('data-action'); handleSafariMenuAction(action); }); });
+            document.addEventListener('click', (e) => { if (safariMenuOpen && !safariMenuPanel.contains(e.target) && e.target !== safariMenuBtn && !safariMenuBtn.contains(e.target)) toggleSafariMenu(false); });
+            renderBookmarks();
+        }
+        function minimizeSafariWindow() { safariWindow.classList.add('state-transition'); safariWindow.classList.add('minimize-anim'); if (isSafFullscreen) { taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); deactivateFullscreenHotzones(); } setTimeout(() => { safariWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); }
+        function restoreSafariWindow() { safariWindow.classList.remove('force-hidden'); safariWindow.style.display = 'flex'; safariWindow.classList.add('state-transition'); safariWindow.classList.remove('minimize-anim'); safariWindow.classList.add('open'); if (isSafFullscreen) { taskbar.classList.add('fullscreen-hidden'); activateFullscreenHotzones(); } setTimeout(() => { safariWindow.classList.remove('state-transition'); updateStatusBarColor(); }, 700); }
+        function toggleSafariFullscreen() { if(!isSafFullscreen) { safariWindow.classList.add('fullscreen'); taskbar.classList.add('fullscreen-hidden'); isSafFullscreen = true; activateFullscreenHotzones(); } else { safariWindow.classList.remove('fullscreen'); safariTopUi.classList.remove('reveal'); taskbar.classList.remove('fullscreen-hidden', 'fullscreen-show'); isSafFullscreen = false; deactivateFullscreenHotzones(); } updateStatusBarColor(); }
+        safariTitlebar.addEventListener('mousedown', (e) => { if (safariWindow.classList.contains('fullscreen') || e.target.closest('.window-controls') || isSplitViewActive || isExposeActive) return; isSafDragging = true; safariWindow.classList.remove('layout-transition', 'state-transition'); offsetX = e.clientX - safLeft; offsetY = e.clientY - safTop; });
+        document.querySelectorAll('#app-safari-window .resize-handle').forEach(handle => { handle.addEventListener('mousedown', (e) => { if (safariWindow.classList.contains('fullscreen') || isSplitViewActive || isExposeActive) return; isSafResizing = true; safariWindow.classList.remove('layout-transition', 'state-transition'); currentHandle = handle.getAttribute('data-handle'); startX = e.clientX; startY = e.clientY; startWidth = safWidth; startHeight = safHeight; startLeft = safLeft; startTop = safTop; e.preventDefault(); }); });
+        window.addEventListener('mousemove', (e) => { if (isSafDragging) { safLeft = e.clientX - offsetX; safTop = e.clientY - offsetY; safariWindow.style.left = `${safLeft}px`; safariWindow.style.top = `${safTop}px`; } else if (isSafResizing) { const changeX = e.clientX - startX, changeY = e.clientY - startY; if (currentHandle.includes('n')) { const nextH = startHeight - changeY; if (nextH >= 350) { safHeight = nextH; safTop = startTop + changeY; } } if (currentHandle.includes('s')) { const nextH = startHeight + changeY; if (nextH >= 350) safHeight = nextH; } if (currentHandle.includes('e')) { const nextW = startWidth + changeX; if (nextW >= 500) safWidth = nextW; } if (currentHandle.includes('w')) { const nextW = startWidth - changeX; if (nextW >= 500) { safWidth = nextW; safLeft = startLeft + changeX; } } safariWindow.style.width = `${safWidth}px`; safariWindow.style.height = `${safHeight}px`; safariWindow.style.left = `${safLeft}px`; safariWindow.style.top = `${safTop}px`; } });
+        window.addEventListener('mouseup', () => { if (isSafDragging || isSafResizing) updateStatusBarColor(); isSafDragging = false; isSafResizing = false; });
+        function toggleSafariMenu(force) { safariMenuOpen = force !== undefined ? force : !safariMenuOpen; if (safariMenuOpen) { safariToolbar.classList.add('menu-active'); safariMenuPanel.classList.add('open'); } else { safariToolbar.classList.remove('menu-active'); safariMenuPanel.classList.remove('open'); } }
+        function createNewTab(url) { const tab = { id: nextSafariTabId++, title: url ? getDomainFromUrl(url) : 'New Tab', url: url || '', history: url ? [url] : [], icon: url ? getFaviconUrl(url) : '' }; safariTabs.push(tab); activeSafariTabId = tab.id; renderTabs(); if (url) { safariWebview.src = url; safariSearchInput.value = url; safariStartPage.style.display = 'none'; } else { safariWebview.src = 'about:blank'; safariSearchInput.value = ''; safariStartPage.style.display = 'flex'; } }
+        function closeTab(tabId) { const idx = safariTabs.findIndex(t => t.id === tabId); if (idx === -1) return; safariTabs.splice(idx, 1); if (safariTabs.length === 0) { createNewTab(); return; } if (activeSafariTabId === tabId) { activeSafariTabId = safariTabs[Math.min(idx, safariTabs.length - 1)].id; switchToTab(activeSafariTabId); } renderTabs(); }
+        function switchToTab(tabId) { const tab = safariTabs.find(t => t.id === tabId); if (!tab) return; activeSafariTabId = tabId; if (tab.url) { safariWebview.src = tab.url; safariSearchInput.value = tab.url; safariStartPage.style.display = 'none'; } else { safariWebview.src = 'about:blank'; safariSearchInput.value = ''; safariStartPage.style.display = 'flex'; } renderTabs(); }
+        function renderTabs() {
+            safariTabsContainer.innerHTML = '';
+            safariTabs.forEach(tab => {
+                const tabEl = document.createElement('div'); tabEl.className = 'safari-tab' + (tab.id === activeSafariTabId ? ' active' : ''); tabEl.setAttribute('data-tab-id', tab.id);
+                const iconHtml = tab.icon ? `<img src="${tab.icon}" onerror="this.style.display='none'">` : '<span style="font-size:9px;color:var(--text-sub);">●</span>';
+                tabEl.innerHTML = `<div class="safari-tab-icon">${iconHtml}</div><div class="safari-tab-title">${tab.title}</div><div class="safari-tab-close">×</div>`;
+                tabEl.addEventListener('click', (e) => { if (e.target.classList.contains('safari-tab-close')) { e.stopPropagation(); closeTab(tab.id); } else switchToTab(tab.id); });
+                setupTabDrag(tabEl, tab); safariTabsContainer.appendChild(tabEl);
+            });
+            const newTabBtn = document.createElement('button'); newTabBtn.className = 'safari-new-tab-btn'; newTabBtn.textContent = '+'; newTabBtn.addEventListener('click', (e) => { e.stopPropagation(); createNewTab(); }); safariTabsContainer.appendChild(newTabBtn);
+        }
+        function setupTabDrag(tabEl, tab) { let isDraggingTab = false; tabEl.addEventListener('mousedown', (e) => { if (e.target.classList.contains('safari-tab-close')) return; isDraggingTab = true; tabEl.classList.add('dragging'); e.preventDefault(); }); window.addEventListener('mousemove', (e) => { if (!isDraggingTab) return; const siblings = Array.from(safariTabsContainer.querySelectorAll('.safari-tab')).filter(s => s !== tabEl); const target = siblings.find(sib => { const rect = sib.getBoundingClientRect(); return e.clientX < rect.left + rect.width / 2; }); if (target) safariTabsContainer.insertBefore(tabEl, target); else { const newTabBtn = safariTabsContainer.querySelector('.safari-new-tab-btn'); if (newTabBtn) safariTabsContainer.insertBefore(tabEl, newTabBtn); } }); window.addEventListener('mouseup', () => { if (!isDraggingTab) return; isDraggingTab = false; tabEl.classList.remove('dragging'); const newOrder = []; safariTabsContainer.querySelectorAll('.safari-tab').forEach(el => { const id = parseInt(el.getAttribute('data-tab-id')); const t = safariTabs.find(t => t.id === id); if (t) newOrder.push(t); }); safariTabs = newOrder; }); }
+        function navigateTo(input) { if (!input) return; let url; if (isUrl(input)) { url = input.startsWith('http') ? input : 'https://' + input; } else { url = 'https://www.google.com/search?q=' + encodeURIComponent(input); } const tab = safariTabs.find(t => t.id === activeSafariTabId); if (tab) { tab.url = url; tab.title = getDomainFromUrl(url); tab.icon = getFaviconUrl(url); tab.history.push(url); } safariWebview.src = url; safariSearchInput.value = url; safariStartPage.style.display = 'none'; renderTabs(); }
+        function goBack() { const tab = safariTabs.find(t => t.id === activeSafariTabId); if (tab && tab.history && tab.history.length > 1) { tab.history.pop(); const prevUrl = tab.history[tab.history.length - 1]; tab.url = prevUrl; tab.title = getDomainFromUrl(prevUrl); tab.icon = getFaviconUrl(prevUrl); safariWebview.src = prevUrl; safariSearchInput.value = prevUrl; renderTabs(); } }
+        function isUrl(input) { return /\./.test(input) && !/\s/.test(input.trim()); }
+        function getDomainFromUrl(url) { try { const u = new URL(url); return u.hostname.replace('www.', ''); } catch { return url.substring(0, 30); } }
+        function getFaviconUrl(url) { try { const u = new URL(url); return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=64`; } catch { return ''; } }
+        function handleSafariMenuAction(action) { const tab = safariTabs.find(t => t.id === activeSafariTabId); const currentUrl = tab ? tab.url : ''; const currentTitle = tab ? tab.title : ''; switch(action) { case 'share': if (currentUrl) { copyToClipboard(currentUrl); showNotification('URL copied to clipboard'); } toggleSafariMenu(false); break; case 'bookmark': if (currentUrl) { safariBookmarks.push({ name: currentTitle, url: currentUrl, icon: getFaviconUrl(currentUrl), favorite: false }); localStorage.setItem('os_safari_bookmarks', JSON.stringify(safariBookmarks)); renderBookmarks(); showNotification('Bookmark added'); } toggleSafariMenu(false); break; case 'desktop-bookmark': if (currentUrl) openBookmarkModal(currentUrl, currentTitle); toggleSafariMenu(false); break; case 'new-tab': createNewTab(); toggleSafariMenu(false); break; case 'reload': if (tab && tab.url) safariWebview.src = tab.url; toggleSafariMenu(false); break; } }
+        function copyToClipboard(text) { if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => fallbackCopy(text)); else fallbackCopy(text); }
+        function fallbackCopy(text) { const textarea = document.createElement('textarea'); textarea.value = text; textarea.style.position = 'fixed'; textarea.style.opacity = '0'; document.body.appendChild(textarea); textarea.select(); try { document.execCommand('copy'); } catch(e) {} document.body.removeChild(textarea); }
+        function showNotification(msg) { const notif = document.createElement('div'); notif.style.cssText = `position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 24px; border-radius: 20px; font-size: 0.85rem; z-index: 99999; animation: fadeInStep 0.3s ease; backdrop-filter: blur(10px);`; notif.textContent = msg; document.body.appendChild(notif); setTimeout(() => { notif.style.opacity = '0'; notif.style.transition = 'opacity 0.3s'; setTimeout(() => notif.remove(), 300); }, 2000); }
+        function renderBookmarks() { safariBookmarksContainer.innerHTML = ''; if (safariBookmarks.length === 0) { safariBookmarksContainer.innerHTML = '<div class="safari-bookmarks-empty">No bookmarks yet</div>'; return; } safariBookmarks.forEach((bm, idx) => { const el = document.createElement('div'); el.className = 'safari-bookmark'; const iconHtml = bm.icon ? `<img src="${bm.icon}" onerror="this.style.display='none'">` : ''; el.innerHTML = `<div class="safari-bookmark-icon">${iconHtml}</div><span>${bm.name}</span>`; el.addEventListener('click', () => navigateTo(bm.url)); el.addEventListener('contextmenu', (e) => { e.preventDefault(); if (confirm('Remove this bookmark?')) { safariBookmarks.splice(idx, 1); localStorage.setItem('os_safari_bookmarks', JSON.stringify(safariBookmarks)); renderBookmarks(); } }); safariBookmarksContainer.appendChild(el); }); }
+        const bookmarkModalOverlay = document.getElementById('bookmark-modal-overlay'), bookmarkModalClose = document.getElementById('bookmark-modal-close'), bookmarkModalSave = document.getElementById('bookmark-modal-save');
+        const bookmarkModalName = document.getElementById('bookmark-modal-name'), bookmarkModalUrl = document.getElementById('bookmark-modal-url'), bookmarkModalIcon = document.getElementById('bookmark-modal-icon');
+        let bookmarkModalOptions = { favorites: false, desktop: false };
+        function openBookmarkModal(url, title) { bookmarkModalName.value = title || getDomainFromUrl(url); bookmarkModalUrl.value = url; const favUrl = getFaviconUrl(url); bookmarkModalIcon.innerHTML = `<img src="${favUrl}" onerror="this.parentElement.innerHTML='<span>${(title||'?').charAt(0).toUpperCase()}</span>'">`; bookmarkModalOptions = { favorites: false, desktop: false }; document.querySelectorAll('.bookmark-modal-option').forEach(o => o.classList.remove('selected')); bookmarkModalOverlay.classList.add('open'); }
+        bookmarkModalClose.addEventListener('click', () => bookmarkModalOverlay.classList.remove('open'));
+        bookmarkModalOverlay.addEventListener('click', (e) => { if (e.target === bookmarkModalOverlay) bookmarkModalOverlay.classList.remove('open'); });
+        document.querySelectorAll('.bookmark-modal-option').forEach(opt => { opt.addEventListener('click', () => { const option = opt.getAttribute('data-option'); bookmarkModalOptions[option] = !bookmarkModalOptions[option]; opt.classList.toggle('selected'); }); });
+        bookmarkModalSave.addEventListener('click', () => { const name = bookmarkModalName.value.trim(), url = bookmarkModalUrl.value.trim(); if (!url) return; const bookmark = { name: name || getDomainFromUrl(url), url: url, icon: getFaviconUrl(url), favorite: bookmarkModalOptions.favorites }; safariBookmarks.push(bookmark); localStorage.setItem('os_safari_bookmarks', JSON.stringify(safariBookmarks)); renderBookmarks(); if (bookmarkModalOptions.desktop) addDesktopShortcut(name || getDomainFromUrl(url), url); bookmarkModalOverlay.classList.remove('open'); showNotification('Bookmark saved'); });
+        function addDesktopShortcut(name, url) { const shortcut = { id: 'shortcut_' + Date.now(), name: name, url: url, icon: getFaviconUrl(url) }; desktopShortcuts.push(shortcut); localStorage.setItem('os_desktop_shortcuts', JSON.stringify(desktopShortcuts)); renderDesktopShortcuts(); }
+        function renderDesktopShortcuts() { const desktopGridContainer = document.getElementById('desktop-apps-grid'); const cellW = 90, cellH = 105, gap = 15; const itemsPerCol = Math.floor((window.innerHeight - 110) / (cellH + gap)) || 4; desktopShortcuts.forEach((shortcut) => { if (document.querySelector(`[data-shortcut-id="${shortcut.id}"]`)) return; const wrapper = document.createElement('div'); wrapper.className = 'desktop-item-container'; wrapper.setAttribute('data-shortcut-id', shortcut.id); wrapper.setAttribute('data-app-id', shortcut.id); const firstLetter = shortcut.name.charAt(0).toUpperCase(); wrapper.innerHTML = `<div class="shortcut-icon-wrapper"><img src="${shortcut.icon}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'shortcut-icon-fallback\\'>${firstLetter}</div>'"></div><div class="desktop-app-label">${shortcut.name}</div>`; let placed = false; for (let col = 0; col < 10 && !placed; col++) { for (let row = 0; row < itemsPerCol && !placed; row++) { if (!gridOccupancyMatrix[`${col},${row}`]) { wrapper.style.left = `${col * (cellW + gap)}px`; wrapper.style.top = `${row * (cellH + gap)}px`; gridOccupancyMatrix[`${col},${row}`] = shortcut.id; placed = true; } } } if (!placed) { wrapper.style.left = `${(systemApps.length) * (cellW + gap)}px`; wrapper.style.top = `0px`; } setupDesktopIconDragEvent(wrapper, cellW, cellH, gap); wrapper.addEventListener('click', () => bringToFront(safariWindow)); wrapper.addEventListener('dblclick', () => { openSafariWithUrl(shortcut.url); bringToFront(safariWindow); }); desktopGridContainer.appendChild(wrapper); }); }
+        function openSafariWithUrl(url) { safariWindow.classList.remove('force-hidden'); safariWindow.style.display = 'flex'; safariWindow.classList.remove('minimize-anim'); safariWindow.classList.add('open'); const currentTab = safariTabs.find(t => t.id === activeSafariTabId); if (currentTab && !currentTab.url) navigateTo(url); else createNewTab(url); }
+    </script>
+</body>
+</html>
