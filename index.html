@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OS Setup & Desktop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
@@ -137,25 +138,45 @@
         .apple-logo path { fill: #ffffff; }
 
         .wizard-container {
-            width: 100%; max-width: 400px; padding: 2rem;
-            display: none; flex-direction: column; align-items: center;
-            text-align: center; position: relative; min-height: 450px;
-            transition: opacity 1s ease-in-out; z-index: 10; color: #333333;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; color: #333333;
+            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920');
+            background-size: cover; background-position: center;
+            overflow: hidden;
+        }
+        .wizard-container::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background-color: rgba(0,0,0,0.2);
+            z-index: 0;
         }
         .wizard-container.loaded { display: flex; opacity: 1; }
-        h1 { font-size: 2.5rem; font-weight: 300; margin-bottom: 2rem; letter-spacing: -0.5px; }
+        .wizard-box {
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            position: relative; z-index: 1;
+            min-height: 500px;
+            justify-content: center;
+        }
+        h1 { font-size: 2rem; font-weight: 300; margin-bottom: 1.5rem; letter-spacing: -0.5px; }
         .step-card { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeInStep 0.4s ease-in-out; }
         .step-card.active { display: flex; }
         .input-group { width: 100%; margin-bottom: 1.5rem; text-align: left; }
         label { display: block; font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
-        input[type="text"], input[type="password"] {
+        input[type="text"], input[type="password"], select {
             width: 100%; padding: 12px 16px; border: 1px solid var(--input-border);
             border-radius: 8px; font-size: 1rem; outline: none;
             transition: border-color 0.2s; background: var(--input-bg);
             color: var(--text-main); user-select: text;
         }
-        .wizard-container input[type="text"], .wizard-container input[type="password"] { background: #fafafa; color: #333333; border: 1px solid #ccc; }
-        input:focus { border-color: var(--accent-color); }
+        .wizard-box input[type="text"], .wizard-box input[type="password"], .wizard-box select { background: #fafafa; color: #333333; border: 1px solid #ccc; }
+        input:focus, select:focus { border-color: var(--accent-color); }
         .btn-submit {
             background-color: var(--accent-color); color: white; border: none;
             padding: 12px 24px; font-size: 1rem; border-radius: 20px;
@@ -172,7 +193,7 @@
         .avatar-placeholder img { width: 100%; height: 100%; object-fit: cover; }
         .avatar-placeholder span { font-size: 2.5rem; color: #8e8e93; }
         #file-input, .pane-file-input { display: none; }
-        .dots-container { display: flex; gap: 8px; position: absolute; bottom: 10px; }
+        .dots-container { display: flex; gap: 8px; position: absolute; bottom: 30px; }
         .dot { width: 8px; height: 8px; border-radius: 50%; background-color: #d1d1d6; transition: background-color 0.3s; }
         .dot.active { background-color: #000000; }
 
@@ -183,6 +204,25 @@
             opacity: 0; transition: opacity 1s ease-in-out; color: #ffffff;
         }
         .prep-text { font-size: 1.5rem; font-weight: 300; margin-bottom: 2rem; letter-spacing: 0.5px; }
+
+        #hello-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.8s ease;
+        }
+        #hello-overlay.show { display: flex; opacity: 1; }
+        #hello-text {
+            font-family: 'Snell Roundhand', 'Brush Script MT', cursive;
+            font-size: 6rem; color: white;
+            border-right: 3px solid white;
+            overflow: hidden; white-space: nowrap;
+            width: 0; 
+            animation: typing 1.5s steps(5, end) forwards, blink 0.7s step-end infinite, erase 1.5s 2.5s steps(5, end) forwards;
+        }
+        @keyframes typing { 0% { width: 0; } 100% { width: 6ch; } }
+        @keyframes erase { 0% { width: 6ch; } 100% { width: 0; } }
+        @keyframes blink { 50% { border-color: transparent; } }
 
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -199,7 +239,7 @@
             text-align: center; color: white; z-index: 10;
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        .clock { font-size: 8rem; font-weight: 100; }
+        .clock { font-size: 8rem; font-weight: 200; font-family: 'Inter', sans-serif; letter-spacing: -2px; }
         #login-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.7); display: flex; flex-direction: column;
@@ -656,23 +696,34 @@
     <div id="boot-screen"><svg class="apple-logo" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg></div>
 
     <div class="wizard-container" id="setup-wizard">
-        <div class="step-card active" id="step-0">
-            <h1>Create Account</h1>
-            <div class="input-group"><label for="setup-username">Username</label><input type="text" id="setup-username" placeholder="Enter username..." autocomplete="off"></div>
-            <div class="input-group"><label for="setup-password">Password</label><input type="password" id="setup-password" placeholder="Enter password..." autocomplete="off"></div>
-            <button class="btn-submit" id="btn-next-0">Next</button>
+        <div class="wizard-box">
+            <div class="step-card active" id="step-lang">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="#007aff" style="margin-bottom: 20px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <h1 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Select Your Country or Region</h1>
+                <div class="input-group" style="margin-bottom: 2rem;">
+                    <select id="language-select"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="ja">日本語</option><option value="zh">中文</option><option value="ko">한국어</option><option value="pt">Português</option><option value="it">Italiano</option><option value="ru">Русский</option><option value="ar">العربية</option><option value="hi">हिन्दी</option></select>
+                </div>
+                <button class="btn-submit visible" id="btn-lang-continue" style="max-width: none; width: 100%;">Continue</button>
+            </div>
+            <div class="step-card" id="step-0">
+                <h1>Create Account</h1>
+                <div class="input-group"><label for="setup-username">Username</label><input type="text" id="setup-username" placeholder="Enter username..." autocomplete="off"></div>
+                <div class="input-group"><label for="setup-password">Password</label><input type="password" id="setup-password" placeholder="Enter password..." autocomplete="off"></div>
+                <button class="btn-submit" id="btn-next-0">Next</button>
+            </div>
+            <div class="step-card" id="step-1">
+                <h1>Profile Picture</h1>
+                <div class="avatar-placeholder" id="avatar-trigger"><span id="plus-icon">+</span><img id="avatar-preview" src="" alt="Avatar Preview" style="display: none;"></div>
+                <input type="file" id="file-input" accept="image/*">
+                <button class="btn-submit visible" id="btn-finish" style="margin-bottom: 8px;">Finish Setup</button>
+                <span style="font-size:0.85rem; color:#8e8e93; cursor:pointer;" id="btn-skip-photo">Skip Photo</span>
+            </div>
+            <div class="dots-container"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
         </div>
-        <div class="step-card" id="step-1">
-            <h1>Profile Picture</h1>
-            <div class="avatar-placeholder" id="avatar-trigger"><span id="plus-icon">+</span><img id="avatar-preview" src="" alt="Avatar Preview" style="display: none;"></div>
-            <input type="file" id="file-input" accept="image/*">
-            <button class="btn-submit visible" id="btn-finish" style="margin-bottom: 8px;">Finish Setup</button>
-            <span style="font-size:0.85rem; color:#8e8e93; cursor:pointer;" id="btn-skip-photo">Skip Photo</span>
-        </div>
-        <div class="dots-container"><div class="dot active"></div><div class="dot"></div></div>
     </div>
 
     <div id="prep-screen"><div class="prep-text" id="prep-status-text">Getting things ready for you</div><div class="white-spinner"></div></div>
+    <div id="hello-overlay"><div id="hello-text">Hello</div></div>
 
     <div id="lock-screen">
         <div class="lock-bg active" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920')"></div>
@@ -841,7 +892,7 @@
             hours = hours % 12; hours = hours ? hours : 12;
             document.getElementById('status-time').textContent = `${hours}:${minutes} ${ampm}`;
             document.getElementById('status-date').textContent = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()]} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()]} ${now.getDate()}`;
-            document.getElementById('clock-display').textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            document.getElementById('clock-display').textContent = `${hours}:${minutes} ${ampm}`;
             if (localStorage.getItem('os_theme_mode') === 'dynamic') evaluateDynamicTheme();
         }
 
@@ -858,12 +909,13 @@
             else { wizard.classList.add('loaded'); }
         }
 
-        const step0 = document.getElementById('step-0'), step1 = document.getElementById('step-1');
+        const stepLang = document.getElementById('step-lang'), step0 = document.getElementById('step-0'), step1 = document.getElementById('step-1');
         const usernameIn = document.getElementById('setup-username'), passwordIn = document.getElementById('setup-password');
-        const btnNext0 = document.getElementById('btn-next-0'), dots = document.querySelectorAll('.dot');
+        const btnNext0 = document.getElementById('btn-next-0'), dots = document.querySelectorAll('.dot'), btnLangContinue = document.getElementById('btn-lang-continue');
         function validateStep0() { btnNext0.classList.toggle('visible', usernameIn.value.trim().length >= 2 && passwordIn.value.length >= 4); }
         usernameIn.addEventListener('input', validateStep0); passwordIn.addEventListener('input', validateStep0);
-        btnNext0.addEventListener('click', () => { osSetupData.username = usernameIn.value.trim(); osSetupData.password = passwordIn.value; step0.classList.remove('active'); dots[0].classList.remove('active'); step1.classList.add('active'); dots[1].classList.add('active'); });
+        btnLangContinue.addEventListener('click', () => { stepLang.classList.remove('active'); dots[0].classList.remove('active'); step0.classList.add('active'); dots[1].classList.add('active'); });
+        btnNext0.addEventListener('click', () => { osSetupData.username = usernameIn.value.trim(); osSetupData.password = passwordIn.value; step0.classList.remove('active'); dots[1].classList.remove('active'); step1.classList.add('active'); dots[2].classList.add('active'); });
 
         const avatarTrigger = document.getElementById('avatar-trigger'), fileInput = document.getElementById('file-input');
         const avatarPreview = document.getElementById('avatar-preview'), plusIcon = document.getElementById('plus-icon');
@@ -871,9 +923,17 @@
         avatarTrigger.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(event) { osSetupData.profilePicture = event.target.result; avatarPreview.src = event.target.result; avatarPreview.style.display = 'block'; plusIcon.style.display = 'none'; avatarTrigger.style.borderStyle = 'solid'; }; reader.readAsDataURL(file); } });
 
-        function completeSetup() { userProfileData = osSetupData; localStorage.setItem('os_user_profile', JSON.stringify(userProfileData)); setupComplete = true; wizard.classList.remove('loaded'); setTimeout(() => { wizard.style.display = 'none'; prepScreen.style.display = 'flex'; setTimeout(() => { prepScreen.style.opacity = '1'; }, 50); setTimeout(() => { prepScreen.style.opacity = '0'; setTimeout(() => { prepScreen.style.display = 'none'; showLockScreen(); }, 1000); }, 5000); }, 1000); }
+        function completeSetup() { userProfileData = osSetupData; localStorage.setItem('os_user_profile', JSON.stringify(userProfileData)); setupComplete = true; wizard.classList.remove('loaded'); setTimeout(() => { wizard.style.display = 'none'; prepScreen.style.display = 'flex'; setTimeout(() => { prepScreen.style.opacity = '1'; }, 50); setTimeout(() => { prepScreen.style.opacity = '0'; setTimeout(() => { prepScreen.style.display = 'none'; showHelloOverlay(); }, 1000); }, 5000); }, 1000); }
         btnFinish.addEventListener('click', completeSetup);
         btnSkipPhoto.addEventListener('click', () => { osSetupData.profilePicture = ''; completeSetup(); });
+
+        function showHelloOverlay() {
+            const overlay = document.getElementById('hello-overlay');
+            const text = document.getElementById('hello-text');
+            text.style.animation = 'none'; text.offsetHeight; text.style.animation = '';
+            overlay.classList.add('show');
+            setTimeout(() => { overlay.style.opacity = '0'; setTimeout(() => { overlay.classList.remove('show'); overlay.style.opacity = ''; showLockScreen(); }, 800); }, 4500);
+        }
 
         let currentBgIndex = 0;
         function showLockScreen() { startSlideshow(); lockScreen.style.display = 'block'; populatePaneAccountData(); }
@@ -1013,18 +1073,56 @@
         function activateFullscreenHotzones() { topHotzone.style.display = 'block'; bottomHotzone.style.display = 'block'; topHotzone.style.pointerEvents = 'auto'; bottomHotzone.style.pointerEvents = 'auto'; }
         function deactivateFullscreenHotzones() { topHotzone.style.display = 'none'; bottomHotzone.style.display = 'none'; topHotzone.style.pointerEvents = 'none'; bottomHotzone.style.pointerEvents = 'none'; }
 
-        topHotzone.addEventListener('mouseenter', () => { if(isFullscreen) { settingsTitlebar.classList.add('reveal'); settingsAppSidebar.classList.add('reveal-tabs'); } if(isSafFullscreen) safariTopUi.classList.add('reveal'); if(isAppstoreFullscreen) { appstoreTitlebar.classList.add('reveal'); appstoreAppSidebar.classList.add('reveal-tabs'); } topHotzone.style.pointerEvents = 'none'; });
         document.addEventListener('mousemove', (e) => {
             const isFs = isFullscreen || isSafFullscreen || isAppstoreFullscreen;
-            if (isFs) { if (e.clientY > window.innerHeight - 30) taskbar.classList.add('fullscreen-show'); else if (e.clientY < window.innerHeight - 90) taskbar.classList.remove('fullscreen-show'); }
-            if (isSplitViewActive && splitViewMainWin && splitViewMainWin.classList.contains('fullscreen')) { if (e.clientX <= 15) splitViewSideWins.forEach(w => w.style.transform = 'translateX(0)'); else if (e.clientX > 200) splitViewSideWins.forEach(w => w.style.transform = 'translateX(-150%)'); }
             if (!isFs) return;
-            const x = e.clientX, y = e.clientY; let hideUI = true;
-            if (y <= 40) hideUI = false;
-            if (isFullscreen && settingsTitlebar.classList.contains('reveal')) { if (y <= 42) hideUI = false; if (x <= settingsAppSidebar.offsetWidth) hideUI = false; }
-            if (isAppstoreFullscreen && appstoreTitlebar.classList.contains('reveal')) { if (y <= 42) hideUI = false; if (x <= appstoreAppSidebar.offsetWidth) hideUI = false; }
-            if (isSafFullscreen && safariTopUi.classList.contains('reveal')) { const uRect = safariTopUi.getBoundingClientRect(); if (x >= uRect.left && x <= uRect.right && y >= uRect.top && y <= uRect.bottom) hideUI = false; }
-            if (hideUI) { if (isFullscreen) { settingsTitlebar.classList.remove('reveal'); settingsAppSidebar.classList.remove('reveal-tabs'); topHotzone.style.pointerEvents = 'auto'; } if (isAppstoreFullscreen) { appstoreTitlebar.classList.remove('reveal'); appstoreAppSidebar.classList.remove('reveal-tabs'); topHotzone.style.pointerEvents = 'auto'; } if (isSafFullscreen && !safariMenuOpen) { safariTopUi.classList.remove('reveal'); topHotzone.style.pointerEvents = 'auto'; } }
+
+            const x = e.clientX, y = e.clientY;
+            let showTopUI = false;
+            let showTaskbar = false;
+
+            if (y < 20) showTopUI = true;
+            if (y > window.innerHeight - 20) showTaskbar = true;
+
+            if (isFullscreen && settingsTitlebar.classList.contains('reveal')) {
+                if (y < 80) showTopUI = true;
+                const sRect = settingsAppSidebar.getBoundingClientRect();
+                if (x >= sRect.left && x <= sRect.right && y >= sRect.top && y <= sRect.bottom) showTopUI = true;
+            }
+            if (isAppstoreFullscreen && appstoreTitlebar.classList.contains('reveal')) {
+                if (y < 80) showTopUI = true;
+                const sRect = appstoreAppSidebar.getBoundingClientRect();
+                if (x >= sRect.left && x <= sRect.right && y >= sRect.top && y <= sRect.bottom) showTopUI = true;
+            }
+            if (isSafFullscreen && safariTopUi.classList.contains('reveal')) {
+                const uRect = safariTopUi.getBoundingClientRect();
+                if (x >= uRect.left && x <= uRect.right && y >= uRect.top && y <= uRect.bottom) showTopUI = true;
+            }
+
+            if (taskbar.classList.contains('fullscreen-show')) {
+                const tRect = taskbar.getBoundingClientRect();
+                if (x >= tRect.left && x <= tRect.right && y >= tRect.top && y <= tRect.bottom) showTaskbar = true;
+                if (y > window.innerHeight - 90) showTaskbar = true;
+            }
+
+            if (showTopUI) {
+                if (isFullscreen) { settingsTitlebar.classList.add('reveal'); settingsAppSidebar.classList.add('reveal-tabs'); }
+                if (isAppstoreFullscreen) { appstoreTitlebar.classList.add('reveal'); appstoreAppSidebar.classList.add('reveal-tabs'); }
+                if (isSafFullscreen && !safariMenuOpen) safariTopUi.classList.add('reveal');
+                topHotzone.style.pointerEvents = 'none';
+            } else {
+                if (isFullscreen) { settingsTitlebar.classList.remove('reveal'); settingsAppSidebar.classList.remove('reveal-tabs'); }
+                if (isAppstoreFullscreen) { appstoreTitlebar.classList.remove('reveal'); appstoreAppSidebar.classList.remove('reveal-tabs'); }
+                if (isSafFullscreen && !safariMenuOpen) safariTopUi.classList.remove('reveal');
+                topHotzone.style.pointerEvents = 'auto';
+            }
+
+            taskbar.classList.toggle('fullscreen-show', showTaskbar);
+
+            if (isSplitViewActive && splitViewMainWin && splitViewMainWin.classList.contains('fullscreen')) {
+                if (x <= 15) splitViewSideWins.forEach(w => w.style.transform = 'translateX(0)');
+                else if (x > 200) splitViewSideWins.forEach(w => w.style.transform = 'translateX(-150%)');
+            }
         });
 
         let isDragging = false, isResizing = false, currentHandle = '', offsetX, offsetY, startX, startY, startWidth, startHeight, startLeft, startTop;
