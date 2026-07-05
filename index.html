@@ -239,7 +239,7 @@
             text-align: center; color: white; z-index: 10;
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        .clock { font-size: 8rem; font-weight: 200; font-family: 'Inter', sans-serif; letter-spacing: -2px; }
+        .clock { font-size: 8rem; font-weight: 100; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; letter-spacing: -2px; }
         #login-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.7); display: flex; flex-direction: column;
@@ -321,6 +321,11 @@
         .browser-ticks { position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: radial-gradient(circle, transparent 70%, #ffffff 72%, transparent 74%) no-repeat center/100% 100%, repeating-conic-gradient(from 0deg, #ffffff 0deg 1deg, transparent 1deg 30deg); opacity: 0.6; border-radius: 50%; }
         .app-icon-files { background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .files-folder-svg { width: 40px; height: 32px; pointer-events: none; }
+        
+        /* Photo Booth App Icon */
+        .app-icon-booth { background-color: #ff3b30; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .app-icon-booth svg { width: 32px; height: 32px; }
+
         .app-icon-photos { background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; }
         .photos-container { position: relative; width: 32px; height: 32px; pointer-events: none; }
         .photos-petal { position: absolute; width: 10px; height: 16px; border-radius: 5px; left: 11px; top: 0; transform-origin: 5px 16px; mix-blend-mode: multiply; opacity: 0.85; }
@@ -375,11 +380,14 @@
         .window.fullscreen .settings-sidebar.reveal-tabs { transform: translateY(0); }
         .settings-search-bar { width: 100%; padding: 8px 12px; border: 1px solid var(--input-border); border-radius: 6px; background-color: var(--bg-window); color: var(--text-main); font-size: 0.9rem; outline: none; user-select: text; }
         .settings-nav-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
-        .settings-nav-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease; }
+        .settings-nav-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease; color: var(--text-main); }
         .settings-nav-item:hover { background-color: rgba(0, 0, 0, 0.05); }
         .theme-dark .settings-nav-item:hover { background-color: rgba(255, 255, 255, 0.05); }
-        .settings-nav-item.active { background-color: rgba(0, 122, 255, 0.1); }
-        .settings-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        .settings-nav-item.active { background-color: rgba(0, 0, 0, 0.08); color: var(--accent-color); }
+        .theme-dark .settings-nav-item.active { background-color: rgba(255, 255, 255, 0.1); color: var(--accent-color); }
+        .settings-nav-item.active svg { fill: var(--accent-color); }
+        
+        .settings-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; background: transparent; }
         .appstore-nav-icon { width: 18px; height: 18px; fill: var(--text-main); }
         .bg-blue { background-color: var(--accent-color); transition: background-color 0.3s; }
         .bg-gray { background-color: #8e8e93; }
@@ -391,6 +399,35 @@
         .pane-tab-header { position: absolute; top: 24px; right: 24px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-sub); font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .settings-pane-content { display: none; flex-direction: column; height: 100%; margin-top: 15px; }
         .settings-pane-content.active { display: flex; }
+
+        /* Photo Booth App Styles */
+        .pb-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: #000; position: relative; overflow: hidden; }
+        #pb-video { max-width: 100%; max-height: 100%; transform: scaleX(-1); }
+        #pb-canvas { display: none; }
+        .pb-left-bar { position: absolute; left: 20px; bottom: 100px; display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 20px; z-index: 10; }
+        .pb-mode-btn { background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .pb-mode-btn svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 2; }
+        .pb-mode-btn.active { background: rgba(255,255,255,0.2); }
+        .pb-bottom-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 40px; background: rgba(0,0,0,0.5); padding: 15px 30px; border-radius: 30px; z-index: 10; }
+        #pb-effects-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        #pb-capture-btn { width: 60px; height: 60px; border-radius: 50%; background: #ff3b30; border: 4px solid rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+        #pb-capture-btn:active { transform: scale(0.9); }
+        #pb-capture-btn svg { width: 30px; height: 30px; fill: #fff; }
+        .pb-spacer { width: 70px; }
+
+        /* Photos App Styles */
+        #photos-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 30px; }
+        .photo-grid-item { width: 100%; aspect-ratio: 1; background-size: cover; background-position: center; cursor: pointer; border-radius: 4px; overflow: hidden; position: relative; }
+        .photo-grid-item img, .photo-grid-item video { width: 100%; height: 100%; object-fit: cover; }
+        .photo-grid-item .video-badge { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.6); color: white; border-radius: 4px; padding: 2px 4px; font-size: 10px; display: flex; align-items: center; gap: 3px; }
+        #photos-back-btn { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; border-radius: 50%; background: var(--taskbar-bg); border: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; color: var(--text-main); backdrop-filter: blur(10px); }
+        #photo-detail-view { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 8px; margin-bottom: 10px; overflow: hidden; cursor: zoom-in; position: relative; }
+        #photo-detail-img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s; transform-origin: center; user-select: none; -webkit-user-drag: none; }
+        #photo-detail-video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        #photo-strip { height: 80px; display: flex; gap: 5px; overflow-x: auto; background: var(--bg-sidebar); padding: 5px; border-radius: 8px; }
+        .strip-item { height: 100%; aspect-ratio: 1; border-radius: 4px; overflow: hidden; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; }
+        .strip-item.active { border-color: var(--accent-color); }
+        .strip-item img, .strip-item video { width: 100%; height: 100%; object-fit: cover; }
 
         .laptop-hero-silhouette { width: 70px; height: 70px; fill: #55befc; opacity: 0.85; }
         .device-info-text { font-size: 1.4rem; font-weight: 300; margin-top: 10px; }
@@ -506,9 +543,9 @@
         .focus-sub { font-size: 12px; opacity: 0.7; color: rgba(255,255,255,0.7); margin-top: 2px; }
         .focus-btn.active .focus-sub { color: rgba(0,0,0,0.5); }
 
-        .split-side { z-index: 950 !important; transition: transform 0.2s ease-in-out; }
-        body.split-view-active .split-side:hover { transform: scale(1.03); z-index: 951 !important; }
-        .split-main { z-index: 950 !important; }
+        .split-side { z-index: 950; transition: transform 0.2s ease-in-out; pointer-events: auto; }
+        body.split-view-active .split-side:hover { transform: scale(1.03); z-index: 951; }
+        .split-main { z-index: 950; pointer-events: auto; }
 
         .expose-win { z-index: 1401 !important; }
         .expose-win:hover { transform: scale(1.05) !important; z-index: 1402 !important; }
@@ -553,7 +590,7 @@
         .safari-tab-close { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; opacity: 0.5; transition: opacity 0.2s, background-color 0.2s; color: inherit; }
         .safari-tab:hover .safari-tab-close { opacity: 0.8; }
         .safari-tab-close:hover { opacity: 1 !important; background-color: rgba(0, 0, 0, 0.15); }
-        .safari-tab.active .safari-tab-close:hover { background-color: rgba(255,255,255,0.2); }
+        .safari-tab.active .safari-tab-close:hover { background-color = rgba(255,255,255,0.2); }
         .safari-new-tab-btn { width: 32px; height: 32px; border-radius: 8px; border: none; background-color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; color: var(--text-main); transition: background-color 0.2s; }
         .safari-new-tab-btn:hover { background-color: rgba(0, 0, 0, 0.06); }
         .theme-dark .safari-new-tab-btn:hover { background-color: rgba(255, 255, 255, 0.06); }
@@ -748,6 +785,73 @@
             <div class="window-content" style="background-color: var(--bg-window);"><div class="generic-app-view"><h2 id="generic-app-title" style="font-weight: 400; margin-bottom: 10px;">App</h2><p style="color: var(--text-sub);">Application content display sandbox.</p><div style="margin-top: 20px; display: flex; flex-direction: column; gap: 8px;"><a href="https://www.wikipedia.org" class="mock-link">Open Wikipedia in Safari</a><a href="https://www.youtube.com" class="mock-link">Open YouTube in Safari</a><a href="https://mail.google.com" class="mock-link">Open Gmail in Safari</a></div></div></div>
         </div>
 
+        <!-- PHOTO BOOTH WINDOW -->
+        <div class="window" id="app-photobooth-window" style="width: 800px; height: 600px; left: 20%; top: 10%;">
+            <div class="resize-handle resize-n" data-handle="n"></div><div class="resize-handle resize-s" data-handle="s"></div><div class="resize-handle resize-e" data-handle="e"></div><div class="resize-handle resize-w" data-handle="w"></div><div class="resize-handle resize-nw" data-handle="nw"></div><div class="resize-handle resize-ne" data-handle="ne"></div><div class="resize-handle resize-sw" data-handle="sw"></div><div class="resize-handle resize-se" data-handle="se"></div>
+            <div class="window-titlebar" id="app-photobooth-titlebar"><div class="window-controls"><button class="win-btn btn-close" id="pb-close-btn"><span>✕</span></button><button class="win-btn btn-minimize" id="pb-min-btn"><span>─</span></button><button class="win-btn btn-expand" id="pb-expand-btn"><span>■</span></button></div></div>
+            <div class="window-content" style="background: #000;">
+                <div class="pb-container">
+                    <video id="pb-video" autoplay playsinline></video>
+                    <canvas id="pb-canvas"></canvas>
+                    <div class="pb-left-bar">
+                        <button class="pb-mode-btn" id="pb-lib-btn" title="Library"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg></button>
+                        <button class="pb-mode-btn active" id="pb-photo-btn" title="Photo"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M12 10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 1c-1.33 0-4 .67-4 2v1h8v-1c0-1.33-2.67-2-4-2z" fill="#fff" stroke="none" /></svg></button>
+                        <button class="pb-mode-btn" id="pb-video-btn" title="Video"><svg viewBox="0 0 24 24"><path d="M4 6h10v12H4z" /><path d="M14 10l6-3v10l-6-3z" fill="#fff" stroke="none" /></svg></button>
+                    </div>
+                    <div class="pb-bottom-bar">
+                        <button id="pb-effects-btn">Effects</button>
+                        <button id="pb-capture-btn"><svg viewBox="0 0 24 24"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" fill="#fff" stroke="none" /></svg></button>
+                        <div class="pb-spacer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHOTOS WINDOW -->
+        <div class="window" id="app-photos-window" style="width: 900px; height: 600px; left: 15%; top: 10%;">
+            <div class="resize-handle resize-n" data-handle="n"></div><div class="resize-handle resize-s" data-handle="s"></div><div class="resize-handle resize-e" data-handle="e"></div><div class="resize-handle resize-w" data-handle="w"></div><div class="resize-handle resize-nw" data-handle="nw"></div><div class="resize-handle resize-ne" data-handle="ne"></div><div class="resize-handle resize-sw" data-handle="sw"></div><div class="resize-handle resize-se" data-handle="se"></div>
+            <div class="window-titlebar" id="app-photos-titlebar"><div class="window-controls"><button class="win-btn btn-close" id="photos-close-btn"><span>✕</span></button><button class="win-btn btn-minimize" id="photos-min-btn"><span>─</span></button><button class="win-btn btn-expand" id="photos-expand-btn"><span>■</span></button></div></div>
+            <div class="window-content">
+                <aside class="settings-sidebar" id="app-photos-sidebar">
+                    <input type="text" class="settings-search-bar" placeholder="Search">
+                    <ul class="settings-nav-list">
+                        <li class="settings-nav-item active" data-photos-tab="library">
+                            <div class="settings-icon"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>
+                            <span class="nav-label">Library</span>
+                        </li>
+                        <li class="settings-nav-item" data-photos-tab="collections">
+                            <div class="settings-icon"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></div>
+                            <span class="nav-label">Collections</span>
+                        </li>
+                    </ul>
+                </aside>
+                <main class="settings-main-pane" id="app-photos-main" style="overflow: hidden;">
+                    <div class="pane-tab-header"><span id="photos-pane-header-label">Library</span></div>
+                    
+                    <div class="settings-pane-content active" id="photos-pane-library">
+                        <div id="photos-grid"></div>
+                    </div>
+                    
+                    <div class="settings-pane-content" id="photos-pane-detail" style="display: none; flex-direction: column; height: 100%; margin-top: 0;">
+                        <button id="photos-back-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <div id="photo-detail-view">
+                            <img id="photo-detail-img" src="" style="display: none;" />
+                            <video id="photo-detail-video" src="" controls style="display: none;"></video>
+                        </div>
+                        <div id="photo-strip"></div>
+                    </div>
+
+                    <div class="settings-pane-content" id="photos-pane-collections">
+                        <h2 style="font-weight: 300; margin-top: 30px;">Collections</h2>
+                        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+                        <p style="color: var(--text-sub);">All your photos and videos in one place.</p>
+                    </div>
+                </main>
+            </div>
+        </div>
+
         <div class="window" id="app-appstore-window" style="width: 850px; height: 550px; left: 15%; top: 15%;">
             <div class="resize-handle resize-n" data-handle="n"></div><div class="resize-handle resize-s" data-handle="s"></div><div class="resize-handle resize-e" data-handle="e"></div><div class="resize-handle resize-w" data-handle="w"></div><div class="resize-handle resize-nw" data-handle="nw"></div><div class="resize-handle resize-ne" data-handle="ne"></div><div class="resize-handle resize-sw" data-handle="sw"></div><div class="resize-handle resize-se" data-handle="se"></div>
             <div class="window-titlebar" id="app-appstore-titlebar"><div class="window-controls"><button class="win-btn btn-close" id="appstore-close-btn"><span>✕</span></button><button class="win-btn btn-minimize" id="appstore-min-btn"><span>─</span></button><button class="win-btn btn-expand" id="appstore-expand-btn"><span>■</span></button></div></div>
@@ -892,7 +996,7 @@
             hours = hours % 12; hours = hours ? hours : 12;
             document.getElementById('status-time').textContent = `${hours}:${minutes} ${ampm}`;
             document.getElementById('status-date').textContent = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()]} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()]} ${now.getDate()}`;
-            document.getElementById('clock-display').textContent = `${hours}:${minutes} ${ampm}`;
+            document.getElementById('clock-display').textContent = `${now.getHours().toString().padStart(2, '0')}:${minutes}`;
             if (localStorage.getItem('os_theme_mode') === 'dynamic') evaluateDynamicTheme();
         }
 
@@ -969,15 +1073,33 @@
             { id: 'browser', name: 'Safari', iconHtml: `<div class="app-icon app-icon-browser" data-app-id="browser"><div class="browser-blue-circle"><div class="browser-ticks"></div><div class="browser-diamond"></div></div></div>` },
             { id: 'appstore', name: 'App Store', iconHtml: `<div class="app-icon app-icon-appstore" data-app-id="appstore"><svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4l6.5 13h-13L12 6z"/></svg></div>` },
             { id: 'settings', name: 'Settings', iconHtml: `<div class="app-icon app-icon-settings" data-app-id="settings"><div class="cog-container"><svg viewBox="0 0 64 64" width="100%" height="100%"><g fill="#4a4a4a"><path d="M60.4 28.1l-5.8-1c-.4-1.5-1-3-1.8-4.4l3.5-4.8c.8-1.1.7-2.6-.3-3.6l-4.2-4.2c-1-.1-2.5-.2-3.6.5l-4.8 3.5c-1.4-.8-2.9-1.4-4.4-1.8l-1-5.8c-.2-1.3-1.4-2.3-2.8-2.3h-6c-1.4 0-2.5 1-2.8 2.3l-1 5.8c-1.5.4-3 1-4.4 1.8l-4.8-3.5c-1.1-.7-2.6-.6-3.6.4l-4.2 4.2c-1 1-1.1 2.5-.3 3.6l3.5 4.8c-.8 1.4-1.4 2.9-1.8 4.4l-5.8 1C1 28.4 0 29.5 0 30.9v6c0 1.4 1 2.5 2.3 2.8l5.8 1c.4 1.5 1 3 1.8 4.4l-3.5 4.8c-.8 1.1-.7 2.6.3 3.6l4.2 4.2c1 1 2.5 1.1 3.6.3l4.8-3.5c1.4.8 2.9 1.4 4.4 1.8l1 5.8c.2 1.3 1.4 2.3 2.8 2.3h6c1.4 0 2.5-1 2.8-2.3l1-5.8c1.5-.4 3-1 4.4-1.8l4.8 3.5c1.1.7 2.6.6 3.6-.4l4.2-4.2c1-1 1.1-2.5-.3-3.6l-3.5-4.8c.8-1.4 1.4-2.9 1.8-4.4l5.8-1c1.3-.2 2.3-1.4 2.3-2.8v-6c0-1.4-1-2.5-2.3-2.8zM32 44c-6.6 0-12-5.4-12-12s5.4-12 12-12 12 5.4 12 12-5.4 12-12 12z"/></g></svg></div></div>` },
-            { id: 'files', name: 'Files', iconHtml: `<div class="app-icon app-icon-files" data-app-id="files"><svg class="files-folder-svg" viewBox="0 0 40 32"><rect x="0" y="2" width="40" height="28" rx="4" fill="#fff" stroke="#ddd" stroke-width="1"/><rect x="0" y="2" width="20" height="28" rx="4" fill="#007aff"/><path d="M20 2 L26 8 L20 14 Z" fill="#005ec4"/><circle cx="12" cy="14" r="2.5" fill="#fff"/><circle cx="28" cy="14" r="2.5" fill="#000"/><path d="M12 20 Q20 26 28 20" stroke="#000" stroke-width="2" fill="none"/></svg></div>` },
-            { id: 'photos', name: 'Photos', iconHtml: `<div class="app-icon app-icon-photos" data-app-id="photos"><div class="photos-container"><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div></div></div>` }
+            { id: 'photobooth', name: 'Photo Booth', iconHtml: `<div class="app-icon app-icon-booth" data-app-id="photobooth"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="#fff" stroke-width="1.5" transform="rotate(-15 12 12)"/><rect x="5" y="6" width="14" height="14" rx="2" fill="#fff"/><path d="M12 10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 1c-1.33 0-4 .67-4 2v1h8v-1c0-1.33-2.67-2-4-2z" fill="#ff3b30"/></svg></div>` },
+            { id: 'photos', name: 'Photos', iconHtml: `<div class="app-icon app-icon-photos" data-app-id="photos"><div class="photos-container"><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div><div class="photos-petal"></div></div></div>` },
+            { id: 'files', name: 'Files', iconHtml: `<div class="app-icon app-icon-files" data-app-id="files"><svg class="files-folder-svg" viewBox="0 0 40 32"><rect x="0" y="2" width="40" height="28" rx="4" fill="#fff" stroke="#ddd" stroke-width="1"/><rect x="0" y="2" width="20" height="28" rx="4" fill="#007aff"/><path d="M20 2 L26 8 L20 14 Z" fill="#005ec4"/><circle cx="12" cy="14" r="2.5" fill="#fff"/><circle cx="28" cy="14" r="2.5" fill="#000"/><path d="M12 20 Q20 26 28 20" stroke="#000" stroke-width="2" fill="none"/></svg></div>` }
         ];
         const gridOccupancyMatrix = {};
+
+        // Persistence Functions
+        function saveDesktopPositions() {
+            const positions = {};
+            for (const [coord, appId] of Object.entries(gridOccupancyMatrix)) {
+                positions[appId] = coord;
+            }
+            localStorage.setItem('os_desktop_positions', JSON.stringify(positions));
+        }
+        function saveTaskbarOrder() {
+            const order = Array.from(taskbar.querySelectorAll('.app-icon')).map(el => el.getAttribute('data-app-id'));
+            localStorage.setItem('os_taskbar_order', JSON.stringify(order));
+        }
 
         function initializeDesktopRuntime() {
             desktop.style.display = 'block'; osStatusBar.style.display = 'flex'; updateOsStatusBar(); updateStatusBarColor();
             customWallpaperData = localStorage.getItem('os_custom_wallpaper'); applySavedWallpaper(); applySavedTheme();
-            renderDesktopAndTaskbarGrid(); renderDesktopShortcuts(); initWindowMetrics(); initGenericAppWindows(); initSafariWindow(); initAppStoreWindow(); setupTaskbarSortingDrag(); initControlCenter();
+            
+            // Load saved photos
+            try { photosMedia = JSON.parse(localStorage.getItem('os_photos_media') || '[]'); } catch(e) { photosMedia = []; }
+
+            renderDesktopAndTaskbarGrid(); renderDesktopShortcuts(); initWindowMetrics(); initGenericAppWindows(); initSafariWindow(); initAppStoreWindow(); initPhotoBoothWindow(); initPhotosWindow(); setupTaskbarSortingDrag(); initControlCenter();
             document.addEventListener('click', (e) => { const link = e.target.closest('a'); if (link && link.getAttribute('href')) { const href = link.getAttribute('href'); if (href.startsWith('http://') || href.startsWith('https://')) { e.preventDefault(); openSafariWithUrl(href); bringToFront(safariWindow); } } });
         }
 
@@ -992,13 +1114,45 @@
             dgc.innerHTML = ''; tc.innerHTML = '';
             const cellW = 90, cellH = 105, gap = 15;
             for (let key in gridOccupancyMatrix) delete gridOccupancyMatrix[key];
-            systemApps.forEach((app, idx) => {
+
+            // Load saved positions and order
+            const savedPositions = JSON.parse(localStorage.getItem('os_desktop_positions') || '{}');
+            const savedOrder = JSON.parse(localStorage.getItem('os_taskbar_order') || '[]');
+
+            // Sort taskbar apps based on saved order
+            const sortedApps = [...systemApps].sort((a, b) => {
+                const aIdx = savedOrder.indexOf(a.id);
+                const bIdx = savedOrder.indexOf(b.id);
+                if (aIdx === -1 && bIdx === -1) return 0;
+                if (aIdx === -1) return 1;
+                if (bIdx === -1) return -1;
+                return aIdx - bIdx;
+            });
+
+            // Render Taskbar
+            sortedApps.forEach((app) => {
                 const tw = document.createElement('div'); tw.innerHTML = app.iconHtml; const ti = tw.firstElementChild; ti.id = `launch-${app.id}-app`;
                 ti.addEventListener('click', (e) => { e.stopPropagation(); handleTaskbarIconClick(app.id); }); tc.appendChild(ti);
+            });
+
+            // Render Desktop
+            const itemsPerCol = Math.floor((window.innerHeight - 110) / (cellH + gap)) || 4;
+            systemApps.forEach((app, idx) => {
                 const dw = document.createElement('div'); dw.className = 'desktop-item-container'; dw.setAttribute('data-app-id', app.id);
                 dw.innerHTML = `${app.iconHtml}<div class="desktop-app-label">${app.name}</div>`;
-                const itemsPerCol = Math.floor((window.innerHeight - 110) / (cellH + gap)) || 4;
-                const col = Math.floor(idx / itemsPerCol), row = idx % itemsPerCol;
+                
+                let col, row;
+                if (savedPositions[app.id]) {
+                    [col, row] = savedPositions[app.id].split(',').map(Number);
+                    // Check for collision
+                    while(gridOccupancyMatrix[`${col},${row}`]) {
+                        row++;
+                        if(row >= itemsPerCol) { row = 0; col++; }
+                    }
+                } else {
+                    col = Math.floor(idx / itemsPerCol); row = idx % itemsPerCol;
+                }
+                
                 dw.style.left = `${col * (cellW + gap)}px`; dw.style.top = `${row * (cellH + gap)}px`;
                 gridOccupancyMatrix[`${col},${row}`] = app.id;
                 setupDesktopIconDragEvent(dw, cellW, cellH, gap);
@@ -1008,7 +1162,23 @@
             });
         }
 
-        function getTargetWindow(appId) { if (appId === 'settings') return settingsAppWindow; if (appId === 'browser') return safariWindow; if (appId === 'appstore') return appstoreWindow; return genericWindow; }
+        function getTargetWindow(appId) {
+            if (appId === 'settings') return settingsAppWindow;
+            if (appId === 'browser') return safariWindow;
+            if (appId === 'appstore') return appstoreWindow;
+            if (appId === 'photobooth') return photoboothWindow;
+            if (appId === 'photos') return photosWindow;
+            return genericWindow;
+        }
+        function openAppRoute(appId) {
+            if (appId === 'settings') restoreWindow();
+            else if (appId === 'browser') restoreSafariWindow();
+            else if (appId === 'appstore') restoreAppStoreWindow();
+            else if (appId === 'photobooth') openPhotoBoothWindow();
+            else if (appId === 'photos') openPhotosWindow();
+            else openGenericAppWindow(appId);
+        }
+        
         function findNearestFreeGridCell(startCellX, startCellY) { let radius = 1; while(radius < 10) { for(let x = -radius; x <= radius; x++) { for(let y = -radius; y <= radius; y++) { if(Math.abs(x) !== radius && Math.abs(y) !== radius) continue; const checkX = startCellX + x, checkY = startCellY + y; if(checkX >= 0 && checkY >= 0) { if(!gridOccupancyMatrix[`${checkX},${checkY}`]) return {x: checkX, y: checkY}; } } } radius++; } return {x: startCellX, y: startCellY + 1}; }
 
         function setupDesktopIconDragEvent(el, cellW, cellH, gap) {
@@ -1035,6 +1205,7 @@
                 else { gridOccupancyMatrix[`${cellX},${cellY}`] = appId; }
                 el.style.left = `${cellX * (cellW + gap)}px`; el.style.top = `${cellY * (cellH + gap)}px`;
                 setTimeout(() => el.classList.remove('snapping'), 300); updateStatusBarColor();
+                saveDesktopPositions(); // Save positions after dragging
             });
         }
 
@@ -1042,7 +1213,8 @@
             let activeDragIcon = null, startX = 0, iconLeftStart = 0;
             taskbar.addEventListener('mousedown', (e) => { const icon = e.target.closest('.app-icon'); if (!icon) return; activeDragIcon = icon; activeDragIcon.classList.add('tb-dragging'); startX = e.clientX; iconLeftStart = icon.offsetLeft; e.preventDefault(); });
             window.addEventListener('mousemove', (e) => { if (!activeDragIcon) return; const dX = e.clientX - startX; const siblingIcons = Array.from(taskbar.querySelectorAll('.app-icon')).filter(el => el !== activeDragIcon); let insertionTarget = siblingIcons.find(sib => { const rect = sib.getBoundingClientRect(); return e.clientX < rect.left + rect.width / 2; }); if (insertionTarget) taskbar.insertBefore(activeDragIcon, insertionTarget); else if (siblingIcons.length > 0) taskbar.appendChild(activeDragIcon); });
-            window.addEventListener('mouseup', () => { if (!activeDragIcon) return; activeDragIcon.classList.remove('tb-dragging'); activeDragIcon = null; });
+            window.addEventListener('mouseup', () => { if (!activeDragIcon) return; activeDragIcon.classList.remove('tb-dragging'); activeDragIcon = null; saveTaskbarOrder(); // Save taskbar order after dropping
+            });
         }
 
         function handleTaskbarIconClick(appId) {
@@ -1055,7 +1227,6 @@
             if (isOpen && !isMinimized && isFocused) { if (appId === 'settings') minimizeWindow(); else if (appId === 'browser') minimizeSafariWindow(); else if (appId === 'appstore') minimizeAppStoreWindow(); else win.classList.add('minimize-anim'); }
             else { openAppRoute(appId); bringToFront(win); }
         }
-        function openAppRoute(appId) { if (appId === 'settings') restoreWindow(); else if (appId === 'browser') restoreSafariWindow(); else if (appId === 'appstore') restoreAppStoreWindow(); else openGenericAppWindow(appId); }
 
         const settingsAppWindow = document.getElementById('app-settings-window'), settingsTitlebar = document.getElementById('app-settings-titlebar'), settingsAppSidebar = document.getElementById('app-settings-sidebar');
         const winCloseBtn = document.getElementById('win-close-btn'), winMinBtn = document.getElementById('win-min-btn'), winExpandBtn = document.getElementById('win-expand-btn');
@@ -1163,7 +1334,7 @@
         window.addEventListener('mouseup', () => { if (isGenDragging || isGenResizing) updateStatusBarColor(); isGenDragging = false; isGenResizing = false; });
 
         const tabHeaderLabel = document.getElementById('pane-tab-header-label');
-        document.querySelectorAll('.settings-nav-item').forEach(item => { if (item.hasAttribute('data-appstore-tab')) return; item.addEventListener('click', function() { document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active')); this.classList.add('active'); const targetTab = this.getAttribute('data-tab'); tabHeaderLabel.textContent = this.querySelector('.nav-label').textContent; document.querySelectorAll('.settings-pane-content').forEach(pane => pane.classList.remove('active')); if (targetTab === 'about') document.getElementById('pane-about').classList.add('active'); if (targetTab === 'account') document.getElementById('pane-account').classList.add('active'); if (targetTab === 'system-status') document.getElementById('pane-system-status').classList.add('active'); if (targetTab === 'wifi') document.getElementById('pane-wifi').classList.add('active'); if (targetTab === 'bluetooth') document.getElementById('pane-bluetooth').classList.add('active'); if (targetTab === 'dock') document.getElementById('pane-dock').classList.add('active'); if (targetTab === 'desktop-settings') document.getElementById('pane-desktop-settings').classList.add('active'); }); });
+        document.querySelectorAll('.settings-nav-item').forEach(item => { if (item.hasAttribute('data-appstore-tab') || item.hasAttribute('data-photos-tab')) return; item.addEventListener('click', function() { document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active')); this.classList.add('active'); const targetTab = this.getAttribute('data-tab'); tabHeaderLabel.textContent = this.querySelector('.nav-label').textContent; document.querySelectorAll('.settings-pane-content').forEach(pane => pane.classList.remove('active')); if (targetTab === 'about') document.getElementById('pane-about').classList.add('active'); if (targetTab === 'account') document.getElementById('pane-account').classList.add('active'); if (targetTab === 'system-status') document.getElementById('pane-system-status').classList.add('active'); if (targetTab === 'wifi') document.getElementById('pane-wifi').classList.add('active'); if (targetTab === 'bluetooth') document.getElementById('pane-bluetooth').classList.add('active'); if (targetTab === 'dock') document.getElementById('pane-dock').classList.add('active'); if (targetTab === 'desktop-settings') document.getElementById('pane-desktop-settings').classList.add('active'); }); });
         function openSettingsTab(tab) { restoreWindow(); bringToFront(settingsAppWindow); setTimeout(() => { document.querySelector(`[data-tab="${tab}"]`).click(); }, 100); }
 
         const paneAvatarImg = document.getElementById('pane-avatar-img'), paneAvatarInput = document.getElementById('pane-avatar-input'), btnChangeAvatar = document.getElementById('btn-change-avatar');
@@ -1226,7 +1397,15 @@
                 [splitViewMainWin, ...splitViewSideWins].forEach(w => { splitViewStates[w.id] = { left: w.style.left, top: w.style.top, width: w.style.width, height: w.style.height }; });
                 applySplitViewLayout();
             } else {
-                [splitViewMainWin, ...splitViewSideWins].forEach(w => { if(!w) return; const st = splitViewStates[w.id]; if (st) { w.style.left = st.left; w.style.top = st.top; w.style.width = st.width; w.style.height = st.height; } w.classList.remove('split-main', 'split-side', 'layout-transition'); w.onclick = null; });
+                [splitViewMainWin, ...splitViewSideWins].forEach(w => {
+                    if(!w) return;
+                    const st = splitViewStates[w.id];
+                    if (st) { w.style.left = st.left; w.style.top = st.top; w.style.width = st.width; w.style.height = st.height; }
+                    w.classList.remove('split-main', 'split-side', 'layout-transition');
+                    w.onclick = null;
+                    w.style.zIndex = ''; // Reset z-index
+                    w.style.pointerEvents = ''; // Reset pointer events
+                });
                 splitViewMainWin = null; splitViewSideWins = [];
             }
         }
@@ -1241,6 +1420,7 @@
                 w.style.left = `${gap}px`; w.style.top = `${40 + idx * (sideH + gap)}px`; w.style.width = `${sideW}px`; w.style.height = `${sideH}px`;
                 w.onclick = (e) => {
                     if (!isSplitViewActive) return;
+                    if (e.target.closest('.window-controls') || e.target.closest('.resize-handle')) return;
                     const targetState = { left: w.style.left, top: w.style.top, width: w.style.width, height: w.style.height };
                     const mainState = { left: splitViewMainWin.style.left, top: splitViewMainWin.style.top, width: splitViewMainWin.style.width, height: splitViewMainWin.style.height };
                     splitViewMainWin.style.left = targetState.left; splitViewMainWin.style.top = targetState.top; splitViewMainWin.style.width = targetState.width; splitViewMainWin.style.height = targetState.height;
@@ -1283,6 +1463,229 @@
             wins.forEach((w, i) => { const r = Math.floor(i / cols), c = i % cols; w.style.left = `${gapX + c * (wW + gapX)}px`; w.style.top = `${gapY + r * (wH + gapY)}px`; w.style.width = `${wW}px`; w.style.height = `${wH}px`; });
         }
         desktop.addEventListener('click', (e) => { if (isExposeActive && e.target === desktop) toggleExpose(false); });
+
+        // --- Photo Booth App Logic ---
+        const photoboothWindow = document.getElementById('app-photobooth-window'), photoboothTitlebar = document.getElementById('app-photobooth-titlebar');
+        let pbLeft = 200, pbTop = 100, pbWidth = 800, pbHeight = 600, isPbDragging = false, isPbResizing = false;
+        let pbStream = null, isRecording = false, mediaRecorder = null, recordedChunks = [];
+        let photosMedia = [];
+
+        function initPhotoBoothWindow() {
+            photoboothWindow.style.left = `${pbLeft}px`; photoboothWindow.style.top = `${pbTop}px`; photoboothWindow.style.width = `${pbWidth}px`; photoboothWindow.style.height = `${pbHeight}px`;
+            document.getElementById('pb-close-btn').addEventListener('click', (e) => { e.stopPropagation(); closePhotoBooth(); });
+            document.getElementById('pb-min-btn').addEventListener('click', (e) => { e.stopPropagation(); photoboothWindow.classList.add('minimize-anim'); });
+            document.getElementById('pb-expand-btn').addEventListener('click', (e) => { e.stopPropagation(); photoboothWindow.classList.toggle('fullscreen'); });
+            
+            document.getElementById('pb-photo-btn').addEventListener('click', () => {
+                document.querySelectorAll('.pb-mode-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('pb-photo-btn').classList.add('active');
+            });
+            document.getElementById('pb-video-btn').addEventListener('click', () => {
+                document.querySelectorAll('.pb-mode-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('pb-video-btn').classList.add('active');
+            });
+            document.getElementById('pb-lib-btn').addEventListener('click', () => { openAppRoute('photos'); bringToFront(photosWindow); });
+            document.getElementById('pb-capture-btn').addEventListener('click', captureMedia);
+            document.getElementById('pb-effects-btn').addEventListener('click', () => showNotification("Effects coming soon!"));
+
+            photoboothTitlebar.addEventListener('mousedown', (e) => { if (photoboothWindow.classList.contains('fullscreen') || e.target.closest('.window-controls') || isSplitViewActive || isExposeActive) return; isPbDragging = true; photoboothWindow.classList.remove('layout-transition', 'state-transition'); offsetX = e.clientX - pbLeft; offsetY = e.clientY - pbTop; });
+            document.querySelectorAll('#app-photobooth-window .resize-handle').forEach(handle => { handle.addEventListener('mousedown', (e) => { if (photoboothWindow.classList.contains('fullscreen') || isSplitViewActive || isExposeActive) return; isPbResizing = true; photoboothWindow.classList.remove('layout-transition', 'state-transition'); currentHandle = handle.getAttribute('data-handle'); startX = e.clientX; startY = e.clientY; startWidth = pbWidth; startHeight = pbHeight; startLeft = pbLeft; startTop = pbTop; e.preventDefault(); }); });
+            window.addEventListener('mousemove', (e) => { if (isPbDragging) { pbLeft = e.clientX - offsetX; pbTop = e.clientY - offsetY; photoboothWindow.style.left = `${pbLeft}px`; photoboothWindow.style.top = `${pbTop}px`; } else if (isPbResizing) { const changeX = e.clientX - startX, changeY = e.clientY - startY; if (currentHandle.includes('n')) { const nextH = startHeight - changeY; if (nextH >= 300) { pbHeight = nextH; pbTop = startTop + changeY; } } if (currentHandle.includes('s')) { const nextH = startHeight + changeY; if (nextH >= 300) pbHeight = nextH; } if (currentHandle.includes('e')) { const nextW = startWidth + changeX; if (nextW >= 400) pbWidth = nextW; } if (currentHandle.includes('w')) { const nextW = startWidth - changeX; if (nextW >= 400) { pbWidth = nextW; pbLeft = startLeft + changeX; } } photoboothWindow.style.width = `${pbWidth}px`; photoboothWindow.style.height = `${pbHeight}px`; photoboothWindow.style.left = `${pbLeft}px`; photoboothWindow.style.top = `${pbTop}px`; } });
+            window.addEventListener('mouseup', () => { isPbDragging = false; isPbResizing = false; });
+        }
+        function openPhotoBoothWindow() {
+            photoboothWindow.classList.remove('force-hidden');
+            photoboothWindow.style.display = 'flex';
+            photoboothWindow.classList.remove('minimize-anim');
+            photoboothWindow.classList.add('open');
+            if (!pbStream) {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then(stream => { pbStream = stream; document.getElementById('pb-video').srcObject = stream; })
+                    .catch(err => showNotification("Camera access denied."));
+            }
+        }
+        function closePhotoBooth() {
+            if (pbStream) { pbStream.getTracks().forEach(track => track.stop()); pbStream = null; }
+            photoboothWindow.classList.remove('open');
+        }
+        function captureMedia() {
+            const isPhotoMode = document.getElementById('pb-photo-btn').classList.contains('active');
+            if (isPhotoMode) {
+                const video = document.getElementById('pb-video');
+                const canvas = document.getElementById('pb-canvas');
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.translate(canvas.width, 0); ctx.scale(-1, 1); // Mirror flip
+                ctx.drawImage(video, 0, 0);
+                const dataUrl = canvas.toDataURL('image/png');
+                photosMedia.push({ id: 'media_' + Date.now(), type: 'photo', src: dataUrl });
+                try { localStorage.setItem('os_photos_media', JSON.stringify(photosMedia)); } catch(e) { showNotification("Storage full! Could not save permanently."); }
+                showNotification("Photo saved to Photos app");
+                renderPhotosGrid();
+            } else {
+                if (!isRecording) {
+                    if (!pbStream) return;
+                    recordedChunks = [];
+                    mediaRecorder = new MediaRecorder(pbStream);
+                    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            photosMedia.push({ id: 'media_' + Date.now(), type: 'video', src: reader.result });
+                            try { localStorage.setItem('os_photos_media', JSON.stringify(photosMedia)); } catch(e) { showNotification("Storage full! Could not save permanently."); }
+                            showNotification("Video saved to Photos app");
+                            renderPhotosGrid();
+                        };
+                        reader.readAsDataURL(blob);
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    document.getElementById('pb-capture-btn').style.background = '#ff0000';
+                    document.getElementById('pb-capture-btn').style.border = '4px solid #ff3b30';
+                } else {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    document.getElementById('pb-capture-btn').style.background = '#ff3b30';
+                    document.getElementById('pb-capture-btn').style.border = '4px solid rgba(255,255,255,0.5)';
+                }
+            }
+        }
+
+        // --- Photos App Logic ---
+        const photosWindow = document.getElementById('app-photos-window'), photosTitlebar = document.getElementById('app-photos-titlebar');
+        let phLeft = 150, phTop = 80, phWidth = 900, phHeight = 600, isPhDragging = false, isPhResizing = false;
+        let isPhotoZoomed = false, isDraggingPhoto = false, photoDragStart = { x: 0, y: 0 }, photoOffset = { x: 0, y: 0 };
+
+        function initPhotosWindow() {
+            photosWindow.style.left = `${phLeft}px`; photosWindow.style.top = `${phTop}px`; photosWindow.style.width = `${phWidth}px`; photosWindow.style.height = `${phHeight}px`;
+            document.getElementById('photos-close-btn').addEventListener('click', () => { photosWindow.classList.remove('open'); });
+            document.getElementById('photos-min-btn').addEventListener('click', () => { photosWindow.classList.add('minimize-anim'); });
+            document.getElementById('photos-expand-btn').addEventListener('click', () => { photosWindow.classList.toggle('fullscreen'); });
+
+            document.querySelectorAll('[data-photos-tab]').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('[data-photos-tab]').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetTab = this.getAttribute('data-photos-tab');
+                    document.getElementById('photos-pane-header-label').textContent = this.querySelector('.nav-label').textContent;
+                    document.getElementById('photos-pane-library').style.display = 'none';
+                    document.getElementById('photos-pane-collections').style.display = 'none';
+                    document.getElementById('photos-pane-detail').style.display = 'none';
+                    if (targetTab === 'library') { document.getElementById('photos-pane-library').style.display = 'flex'; renderPhotosGrid(); }
+                    else if (targetTab === 'collections') { document.getElementById('photos-pane-collections').style.display = 'flex'; }
+                });
+            });
+
+            document.getElementById('photos-back-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('photos-pane-detail').style.display = 'none';
+                document.getElementById('photos-pane-library').style.display = 'flex';
+                isPhotoZoomed = false; photoOffset = { x: 0, y: 0 };
+                document.getElementById('photo-detail-img').style.transform = `translate(0px, 0px) scale(1)`;
+                document.getElementById('photo-detail-img').style.cursor = 'zoom-in';
+                document.getElementById('photo-strip').style.display = 'flex';
+            });
+
+            const detailView = document.getElementById('photo-detail-view');
+            const detailImg = document.getElementById('photo-detail-img');
+            
+            detailView.addEventListener('click', (e) => {
+                if (e.target === detailView || e.target === detailImg) {
+                    if (!isPhotoZoomed) {
+                        document.getElementById('photo-strip').style.display = document.getElementById('photo-strip').style.display === 'none' ? 'flex' : 'none';
+                    }
+                }
+            });
+            detailImg.addEventListener('dblclick', () => {
+                isPhotoZoomed = !isPhotoZoomed;
+                if (isPhotoZoomed) {
+                    detailImg.style.cursor = 'zoom-out';
+                    detailImg.style.transform = `translate(${photoOffset.x}px, ${photoOffset.y}px) scale(2)`;
+                } else {
+                    detailImg.style.cursor = 'zoom-in';
+                    photoOffset = { x: 0, y: 0 };
+                    detailImg.style.transform = `translate(0px, 0px) scale(1)`;
+                }
+            });
+            detailImg.addEventListener('mousedown', (e) => {
+                if (isPhotoZoomed) { isDraggingPhoto = true; photoDragStart.x = e.clientX - photoOffset.x; photoDragStart.y = e.clientY - photoOffset.y; }
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (isDraggingPhoto) { photoOffset.x = e.clientX - photoDragStart.x; photoOffset.y = e.clientY - photoDragStart.y; detailImg.style.transform = `translate(${photoOffset.x}px, ${photoOffset.y}px) scale(2)`; }
+            });
+            window.addEventListener('mouseup', () => { isDraggingPhoto = false; });
+
+            photosTitlebar.addEventListener('mousedown', (e) => { if (photosWindow.classList.contains('fullscreen') || e.target.closest('.window-controls') || isSplitViewActive || isExposeActive) return; isPhDragging = true; photosWindow.classList.remove('layout-transition', 'state-transition'); offsetX = e.clientX - phLeft; offsetY = e.clientY - phTop; });
+            document.querySelectorAll('#app-photos-window .resize-handle').forEach(handle => { handle.addEventListener('mousedown', (e) => { if (photosWindow.classList.contains('fullscreen') || isSplitViewActive || isExposeActive) return; isPhResizing = true; photosWindow.classList.remove('layout-transition', 'state-transition'); currentHandle = handle.getAttribute('data-handle'); startX = e.clientX; startY = e.clientY; startWidth = phWidth; startHeight = phHeight; startLeft = phLeft; startTop = phTop; e.preventDefault(); }); });
+            window.addEventListener('mousemove', (e) => { if (isPhDragging) { phLeft = e.clientX - offsetX; phTop = e.clientY - offsetY; photosWindow.style.left = `${phLeft}px`; photosWindow.style.top = `${phTop}px`; } else if (isPhResizing) { const changeX = e.clientX - startX, changeY = e.clientY - startY; if (currentHandle.includes('n')) { const nextH = startHeight - changeY; if (nextH >= 300) { phHeight = nextH; phTop = startTop + changeY; } } if (currentHandle.includes('s')) { const nextH = startHeight + changeY; if (nextH >= 300) phHeight = nextH; } if (currentHandle.includes('e')) { const nextW = startWidth + changeX; if (nextW >= 400) phWidth = nextW; } if (currentHandle.includes('w')) { const nextW = startWidth - changeX; if (nextW >= 400) { phWidth = nextW; phLeft = startLeft + changeX; } } photosWindow.style.width = `${phWidth}px`; photosWindow.style.height = `${phHeight}px`; photosWindow.style.left = `${phLeft}px`; photosWindow.style.top = `${phTop}px`; } });
+            window.addEventListener('mouseup', () => { isPhDragging = false; isPhResizing = false; });
+            
+            renderPhotosGrid();
+        }
+        function openPhotosWindow() {
+            photosWindow.classList.remove('force-hidden');
+            photosWindow.style.display = 'flex';
+            photosWindow.classList.remove('minimize-anim');
+            photosWindow.classList.add('open');
+            document.getElementById('photos-pane-library').style.display = 'flex';
+            document.getElementById('photos-pane-detail').style.display = 'none';
+            document.getElementById('photos-pane-collections').style.display = 'none';
+            document.querySelector('[data-photos-tab="library"]').click();
+            renderPhotosGrid();
+        }
+        function renderPhotosGrid() {
+            const grid = document.getElementById('photos-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            if (photosMedia.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-sub); margin-top: 50px;">No photos or videos yet. Use Photo Booth to capture some!</p>';
+                return;
+            }
+            photosMedia.forEach((media, index) => {
+                const el = document.createElement('div');
+                el.className = 'photo-grid-item';
+                if (media.type === 'photo') {
+                    el.innerHTML = `<img src="${media.src}">`;
+                } else {
+                    el.innerHTML = `<video src="${media.src}" muted></video><div class="video-badge">▶</div>`;
+                }
+                el.addEventListener('click', () => openPhotoDetail(index));
+                grid.appendChild(el);
+            });
+        }
+        function openPhotoDetail(index) {
+            document.getElementById('photos-pane-library').style.display = 'none';
+            document.getElementById('photos-pane-detail').style.display = 'flex';
+            
+            const media = photosMedia[index];
+            const imgEl = document.getElementById('photo-detail-img');
+            const vidEl = document.getElementById('photo-detail-video');
+            
+            if (media.type === 'photo') {
+                imgEl.src = media.src; imgEl.style.display = 'block'; vidEl.style.display = 'none'; vidEl.pause();
+            } else {
+                vidEl.src = media.src; vidEl.style.display = 'block'; imgEl.style.display = 'none';
+            }
+
+            const strip = document.getElementById('photo-strip');
+            strip.innerHTML = '';
+            photosMedia.forEach((m, i) => {
+                const el = document.createElement('div');
+                el.className = 'strip-item' + (i === index ? ' active' : '');
+                if (m.type === 'photo') {
+                    el.innerHTML = `<img src="${m.src}">`;
+                } else {
+                    el.innerHTML = `<video src="${m.src}" muted></video>`;
+                }
+                el.addEventListener('click', () => openPhotoDetail(i));
+                strip.appendChild(el);
+            });
+        }
+
+        /* ================================================================ */
+        /* SAFARI BROWSER APP IMPLEMENTATION                                */
+        /* ================================================================ */
 
         const safariWindow = document.getElementById('app-safari-window'), safariTitlebar = document.getElementById('app-safari-titlebar'), safariTopUi = document.getElementById('safari-top-ui'), safariToolbar = document.getElementById('safari-toolbar');
         const safariSearchInput = document.getElementById('safari-search-input'), safariBackBtn = document.getElementById('safari-back-btn'), safariMenuBtn = document.getElementById('safari-menu-btn'), safariMenuPanel = document.getElementById('safari-menu-panel');
@@ -1346,8 +1749,63 @@
         document.querySelectorAll('.bookmark-modal-option').forEach(opt => { opt.addEventListener('click', () => { const option = opt.getAttribute('data-option'); bookmarkModalOptions[option] = !bookmarkModalOptions[option]; opt.classList.toggle('selected'); }); });
         bookmarkModalSave.addEventListener('click', () => { const name = bookmarkModalName.value.trim(), url = bookmarkModalUrl.value.trim(); if (!url) return; const bookmark = { name: name || getDomainFromUrl(url), url: url, icon: getFaviconUrl(url), favorite: bookmarkModalOptions.favorites }; safariBookmarks.push(bookmark); localStorage.setItem('os_safari_bookmarks', JSON.stringify(safariBookmarks)); renderBookmarks(); if (bookmarkModalOptions.desktop) addDesktopShortcut(name || getDomainFromUrl(url), url); bookmarkModalOverlay.classList.remove('open'); showNotification('Bookmark saved'); });
         function addDesktopShortcut(name, url) { const shortcut = { id: 'shortcut_' + Date.now(), name: name, url: url, icon: getFaviconUrl(url) }; desktopShortcuts.push(shortcut); localStorage.setItem('os_desktop_shortcuts', JSON.stringify(desktopShortcuts)); renderDesktopShortcuts(); }
-        function renderDesktopShortcuts() { const desktopGridContainer = document.getElementById('desktop-apps-grid'); const cellW = 90, cellH = 105, gap = 15; const itemsPerCol = Math.floor((window.innerHeight - 110) / (cellH + gap)) || 4; desktopShortcuts.forEach((shortcut) => { if (document.querySelector(`[data-shortcut-id="${shortcut.id}"]`)) return; const wrapper = document.createElement('div'); wrapper.className = 'desktop-item-container'; wrapper.setAttribute('data-shortcut-id', shortcut.id); wrapper.setAttribute('data-app-id', shortcut.id); const firstLetter = shortcut.name.charAt(0).toUpperCase(); wrapper.innerHTML = `<div class="shortcut-icon-wrapper"><img src="${shortcut.icon}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'shortcut-icon-fallback\\'>${firstLetter}</div>'"></div><div class="desktop-app-label">${shortcut.name}</div>`; let placed = false; for (let col = 0; col < 10 && !placed; col++) { for (let row = 0; row < itemsPerCol && !placed; row++) { if (!gridOccupancyMatrix[`${col},${row}`]) { wrapper.style.left = `${col * (cellW + gap)}px`; wrapper.style.top = `${row * (cellH + gap)}px`; gridOccupancyMatrix[`${col},${row}`] = shortcut.id; placed = true; } } } if (!placed) { wrapper.style.left = `${(systemApps.length) * (cellW + gap)}px`; wrapper.style.top = `0px`; } setupDesktopIconDragEvent(wrapper, cellW, cellH, gap); wrapper.addEventListener('click', () => bringToFront(safariWindow)); wrapper.addEventListener('dblclick', () => { openSafariWithUrl(shortcut.url); bringToFront(safariWindow); }); desktopGridContainer.appendChild(wrapper); }); }
-        function openSafariWithUrl(url) { safariWindow.classList.remove('force-hidden'); safariWindow.style.display = 'flex'; safariWindow.classList.remove('minimize-anim'); safariWindow.classList.add('open'); const currentTab = safariTabs.find(t => t.id === activeSafariTabId); if (currentTab && !currentTab.url) navigateTo(url); else createNewTab(url); }
+        function renderDesktopShortcuts() {
+            const desktopGridContainer = document.getElementById('desktop-apps-grid');
+            const cellW = 90, cellH = 105, gap = 15;
+            const itemsPerCol = Math.floor((window.innerHeight - 110) / (cellH + gap)) || 4;
+            const savedPositions = JSON.parse(localStorage.getItem('os_desktop_positions') || '{}');
+            desktopShortcuts.forEach((shortcut) => {
+                if (document.querySelector(`[data-shortcut-id="${shortcut.id}"]`)) return;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'desktop-item-container';
+                wrapper.setAttribute('data-shortcut-id', shortcut.id);
+                wrapper.setAttribute('data-app-id', shortcut.id);
+                const firstLetter = shortcut.name.charAt(0).toUpperCase();
+                wrapper.innerHTML = `<div class="shortcut-icon-wrapper"><img src="${shortcut.icon}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'shortcut-icon-fallback\\'>${firstLetter}</div>'"></div><div class="desktop-app-label">${shortcut.name}</div>`;
+                let placed = false;
+                if (savedPositions[shortcut.id]) {
+                    const [col, row] = savedPositions[shortcut.id].split(',').map(Number);
+                    if (!gridOccupancyMatrix[`${col},${row}`]) {
+                        wrapper.style.left = `${col * (cellW + gap)}px`;
+                        wrapper.style.top = `${row * (cellH + gap)}px`;
+                        gridOccupancyMatrix[`${col},${row}`] = shortcut.id;
+                        placed = true;
+                    }
+                }
+                if (!placed) {
+                    for (let col = 0; col < 10 && !placed; col++) {
+                        for (let row = 0; row < itemsPerCol && !placed; row++) {
+                            if (!gridOccupancyMatrix[`${col},${row}`]) {
+                                wrapper.style.left = `${col * (cellW + gap)}px`;
+                                wrapper.style.top = `${row * (cellH + gap)}px`;
+                                gridOccupancyMatrix[`${col},${row}`] = shortcut.id;
+                                placed = true;
+                            }
+                        }
+                    }
+                }
+                if (!placed) {
+                    wrapper.style.left = `${(systemApps.length) * (cellW + gap)}px`;
+                    wrapper.style.top = `0px`;
+                }
+                setupDesktopIconDragEvent(wrapper, cellW, cellH, gap);
+                wrapper.addEventListener('click', () => bringToFront(safariWindow));
+                wrapper.addEventListener('dblclick', () => {
+                    openSafariWithUrl(shortcut.url);
+                    bringToFront(safariWindow);
+                });
+                desktopGridContainer.appendChild(wrapper);
+            });
+        }
+        function openSafariWithUrl(url) {
+            safariWindow.classList.remove('force-hidden');
+            safariWindow.style.display = 'flex';
+            safariWindow.classList.remove('minimize-anim');
+            safariWindow.classList.add('open');
+            const currentTab = safariTabs.find(t => t.id === activeSafariTabId);
+            if (currentTab && !currentTab.url) navigateTo(url);
+            else createNewTab(url);
+        }
     </script>
 </body>
 </html>
