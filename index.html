@@ -85,8 +85,8 @@ input:focus,select:focus{border-color:var(--system-blue)}
 #login-error{color:#ff4d4d;margin-top:.5rem;display:none}
 .welcome-msg{font-size:3rem;margin-bottom:2rem;display:none}
 .white-spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite;margin-top:10px}
-#desktop{position:fixed;top:28px;left:0;width:100vw;height:calc(100vh - 28px);background-size:cover;background-position:center;z-index:5;display:none;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1)}
-.desktop-grid{position:absolute;top:20px;left:20px;right:20px;bottom:90px;display:grid;grid-template-columns:repeat(auto-fill,90px);grid-template-rows:repeat(auto-fill,105px);grid-auto-flow:column;gap:15px;pointer-events:none;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .3s}
+#desktop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-size:cover;background-position:center;z-index:5;display:none;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1)}
+.desktop-grid{position:absolute;top:40px;left:20px;right:20px;bottom:90px;display:grid;grid-template-columns:repeat(auto-fill,90px);grid-template-rows:repeat(auto-fill,105px);grid-auto-flow:column;gap:15px;pointer-events:none;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .3s}
 body.expose-active .desktop-grid,body.app-expose-active .desktop-grid{transform:translateX(-150%);opacity:0;pointer-events:none}
 .desktop-item-container{width:90px;height:105px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;pointer-events:auto;position:absolute;cursor:pointer;transition:left .3s cubic-bezier(.2,1,.2,1),top .3s cubic-bezier(.2,1,.2,1)}
 .desktop-item-container.dragging{transition:none!important;z-index:1000}
@@ -134,7 +134,7 @@ body.theme-dark .dock-placeholder{background-color:rgba(255,255,255,.2)}
 .window.layout-transition{transition:left .4s cubic-bezier(.4,0,.2,1),top .4s cubic-bezier(.4,0,.2,1),width .4s cubic-bezier(.4,0,.2,1),height .4s cubic-bezier(.4,0,.2,1),transform .2s!important}
 .window.open{opacity:1;transform:scale(1);pointer-events:auto}
 .window.minimize-anim{opacity:0;pointer-events:none;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1),opacity 0.5s}
-.window.fullscreen{top:-28px!important;left:0!important;width:100vw!important;height:100vh!important;border-radius:0!important;border:none;z-index:1200!important}
+.window.fullscreen{top:0!important;left:0!important;width:100vw!important;height:100vh!important;border-radius:0!important;border:none;z-index:1200!important}
 .window-titlebar{width:100%;height:42px;background:var(--titlebar-bg);border-bottom:1px solid var(--titlebar-border);display:flex;align-items:center;padding:0 16px;position:relative;cursor:move;border-top-left-radius:11px;border-top-right-radius:11px;flex-shrink:0;z-index:10;transition:background-color .3s}
 #app-generic-window .window-titlebar,#app-photobooth-window .window-titlebar,#app-safari-window .window-titlebar,#app-calc-window .window-titlebar{background:var(--accent-tint-titlebar)!important}
 .window-title-text{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:.85rem;font-weight:600;color:var(--text-main);pointer-events:none}
@@ -181,6 +181,8 @@ body.theme-dark .dock-placeholder{background-color:rgba(255,255,255,.2)}
 .bg-red{background:#ff3b30}
 .bg-red-pink{background:#ff2d55}
 .bg-purple{background:#5856d6}
+.bg-green{background:#34c759}
+.bg-dark-gray{background:#3a3a3c}
 .white-silhouette{width:18px;height:18px;fill:#fff}
 .nav-label{font-size:.9rem;font-weight:500}
 .sidebar-divider{border:none;border-top:1px solid var(--border-color);margin:6px 4px}
@@ -788,7 +790,7 @@ body.expose-active .task-bar.vertical-right, body.app-expose-active .task-bar.ve
 <div class="wizard-container" id="setup-wizard">
     <div class="wizard-box">
         <div class="step-card active" id="step-lang">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="#007aff" style="margin-bottom: 20px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="1.5" style="margin-bottom: 20px;"><circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="4" ry="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
             <h1 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Select Your Country or Region</h1>
             <div class="input-group" style="margin-bottom: 2rem;">
                 <select id="language-select">
@@ -962,7 +964,7 @@ body.expose-active .task-bar.vertical-right, body.app-expose-active .task-bar.ve
                 <input type="text" class="settings-search-bar" placeholder="Search">
                 <ul class="settings-nav-list">
                     <li class="settings-nav-item active" data-photos-tab="library"><div class="settings-icon"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div><span class="nav-label">Library</span></li>
-                    <li class="settings-nav-item" data-photos-tab="collections"><div class="settings-icon"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2.fm0 12H4V8h16v10z"/></svg></div><span class="nav-label">Collections</span></li>
+                    <li class="settings-nav-item" data-photos-tab="collections"><div class="settings-icon"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></div><span class="nav-label">Collections</span></li>
                 </ul>
             </aside>
             <div class="settings-drag-zone"></div>
@@ -1159,8 +1161,49 @@ body.expose-active .task-bar.vertical-right, body.app-expose-active .task-bar.ve
                         <span class="nav-label">Bluetooth</span>
                     </li>
                     <li class="settings-nav-item" data-tab="network">
-                        <div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
+                        <div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>
                         <span class="nav-label">Network</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="vpn">
+                        <div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/><path d="M8 22c2-1 4-1 6 0" stroke-linecap="round"/></svg></div>
+                        <span class="nav-label">VPN</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="battery">
+                        <div class="settings-icon bg-green"><svg class="white-silhouette" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2" stroke="#fff" stroke-width="2" fill="none"/><rect x="20" y="10" width="2" height="4" fill="#fff"/><rect x="4" y="9" width="12" height="6" fill="#fff"/></svg></div>
+                        <span class="nav-label">Battery</span>
+                    </li>
+                    <hr class="sidebar-divider">
+                    <li class="settings-nav-item" data-tab="general">
+                        <div class="settings-icon bg-gray"><svg class="white-silhouette" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><path d="M12 8.5V12M9 14.5L12 12M15 14.5L12 12"/></svg></div>
+                        <span class="nav-label">General</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="accessibility">
+                        <div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="7" r="1.5" fill="#fff" stroke="none"/><path d="M12 8.5l-2.5 4h5L12 8.5zM12 12.5L8 18M12 12.5L16 18M12 12.5V18"/></svg></div>
+                        <span class="nav-label">Accessibility</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="appearance">
+                        <div class="settings-icon bg-gray"><svg class="white-silhouette" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8h4c0 2.21 1.79 4 4 4v4z"/></svg></div>
+                        <span class="nav-label">Appearance</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="dock">
+                        <div class="settings-icon bg-dark-gray"><svg class="white-silhouette" viewBox="0 0 24 24" fill="#fff"><path d="M3 5h6a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v0a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v0a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v0a1 1 0 0 0-1-1H3zm12 9h6a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v0a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v0a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v0a1 1 0 0 0-1-1h-6z"/></svg></div>
+                        <span class="nav-label">Desktop & Dock</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="displays">
+                        <div class="settings-icon bg-blue"><svg class="white-silhouette" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="3"/><g stroke="#fff" stroke-width="1.5" fill="none"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1l2.1-2.1M17 7l2.1-2.1"/></g></svg></div>
+                        <span class="nav-label">Displays</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="menubar">
+                        <div class="settings-icon bg-dark-gray"><svg class="white-silhouette" viewBox="0 0 24 24" fill="#fff"><path d="M3 5h6a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v0a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v0a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v0a1 1 0 0 0-1-1H3zm12 9h6a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2v0a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v0a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v0a1 1 0 0 0-1-1h-6z"/></svg></div>
+                        <span class="nav-label">Menu Bar</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="siri">
+                        <div class="settings-icon bg-dark-gray"><img src="https://www.pngplay.com/wp-content/uploads/3/Apple-Siri-Logo-Transparent-PNG.png" style="width: 18px; height: 18px; object-fit: contain; filter: brightness(0) invert(1);"></div>
+                        <span class="nav-label">Siri</span>
+                    </li>
+                    <li class="settings-nav-item" data-tab="spotlight">
+                        <div class="settings-icon bg-dark-gray"><svg class="white-silhouette" viewBox="0 0 24 24" fill="#fff"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>
+                        <span class="nav-label">Spotlight</span>
                     </li>
                     <hr class="sidebar-divider">
                     <li class="settings-nav-item" data-tab="notifications">
@@ -1182,7 +1225,6 @@ body.expose-active .task-bar.vertical-right, body.app-expose-active .task-bar.ve
                     <hr class="sidebar-divider">
                     <li class="settings-nav-item" data-tab="about"><div class="settings-icon bg-gray"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div><span class="nav-label">About this PC</span></li>
                     <li class="settings-nav-item" data-tab="system-status"><div class="settings-icon bg-gray"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div><span class="nav-label">System Status</span></li>
-                    <li class="settings-nav-item" data-tab="dock"><div class="settings-icon bg-black"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0-1.1.9-2 2-2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg></div><span class="nav-label">Desktop & Dock</span></li>
                     <li class="settings-nav-item" data-tab="desktop-settings"><div class="settings-icon bg-cyan"><svg class="white-silhouette" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div><span class="nav-label">Desktop Theme</span></li>
                 </ul>
             </aside>
@@ -1192,6 +1234,43 @@ body.expose-active .task-bar.vertical-right, body.app-expose-active .task-bar.ve
                 <div class="settings-pane-content active" id="pane-wifi"><h2 style="font-weight: 300;">Wi-Fi Networks</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Connected to Internet Pipeline.</p></div>
                 <div class="settings-pane-content" id="pane-bluetooth"><h2 style="font-weight: 300;">Bluetooth</h2><hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;"><p style="color: var(--text-sub);">Searching for nearby wireless modules...</p></div>
                 <div class="settings-pane-content" id="pane-network"><h2 style="font-weight: 300;">Network</h2></div>
+                <div class="settings-pane-content" id="pane-vpn"><h2 style="font-weight: 300;">VPN</h2></div>
+                <div class="settings-pane-content" id="pane-battery"><h2 style="font-weight: 300;">Battery</h2></div>
+                <div class="settings-pane-content" id="pane-general"><h2 style="font-weight: 300;">General</h2></div>
+                <div class="settings-pane-content" id="pane-accessibility"><h2 style="font-weight: 300;">Accessibility</h2></div>
+                <div class="settings-pane-content" id="pane-appearance"><h2 style="font-weight: 300;">Appearance</h2></div>
+                <div class="settings-pane-content" id="pane-dock">
+                    <h2 style="font-weight: 300; margin-bottom: 20px;">Dock</h2>
+                    <div class="dock-settings-box">
+                        <div class="dock-slider-container">
+                            <span class="dock-slider-title">Size</span>
+                            <div class="dock-slider-row"><div class="dock-slider-track-box"><div class="dock-slider-track"></div><div class="dock-slider-tick" style="left: 0%"></div><div class="dock-slider-tick" style="left: 100%"></div><input type="range" class="dock-slider-input" id="dock-size-slider" min="0" max="100" value="20"></div></div>
+                            <div class="dock-slider-labels"><span>Small</span><span>Large</span></div>
+                        </div>
+                        <div class="dock-slider-container">
+                            <span class="dock-slider-title">Magnification</span>
+                            <div class="dock-slider-row"><div class="dock-slider-track-box"><div class="dock-slider-track"></div><div class="dock-slider-tick" style="left: 0%"></div><div class="dock-slider-tick" style="left: 33%"></div><div class="dock-slider-tick" style="left: 100%"></div><input type="range" class="dock-slider-input" id="dock-magnification-slider" min="0" max="100" value="80"></div></div>
+                            <div class="dock-slider-labels" style="position: relative; height: 12px;"><span style="position: absolute; left: 0;">Off</span><span style="position: absolute; left: 33%; transform: translateX(-50%);">Small</span><span style="position: absolute; right: 0;">Large</span></div>
+                        </div>
+                    </div>
+                    <div class="dock-settings-box">
+                        <div class="dock-position-row">
+                            <span class="dock-position-label">Position on screen</span>
+                            <div class="dock-dropdown-wrapper">
+                                <button class="dock-dropdown-btn" id="dock-position-btn">Bottom</button>
+                                <div class="dock-dropdown-menu" id="dock-position-menu">
+                                    <div class="dock-dropdown-item" data-pos="left">Left</div>
+                                    <div class="dock-dropdown-item active" data-pos="bottom">Bottom</div>
+                                    <div class="dock-dropdown-item" data-pos="right">Right</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-pane-content" id="pane-displays"><h2 style="font-weight: 300;">Displays</h2></div>
+                <div class="settings-pane-content" id="pane-menubar"><h2 style="font-weight: 300;">Menu Bar</h2></div>
+                <div class="settings-pane-content" id="pane-siri"><h2 style="font-weight: 300;">Siri</h2></div>
+                <div class="settings-pane-content" id="pane-spotlight"><h2 style="font-weight: 300;">Spotlight</h2></div>
                 <div class="settings-pane-content" id="pane-notifications"><h2 style="font-weight: 300;">Notifications</h2></div>
                 <div class="settings-pane-content" id="pane-sound"><h2 style="font-weight: 300;">Sound</h2></div>
                 <div class="settings-pane-content" id="pane-focus"><h2 style="font-weight: 300;">Focus</h2></div>
@@ -1225,34 +1304,6 @@ body.expose-active .task-bar.vertical-right, body.app-expose-active .task-bar.ve
                     <div class="toggle-row"><span>VPN Active</span><label class="switch"><input type="checkbox" id="toggle-vpn" checked><span class="slider"></span></label></div>
                     <div class="toggle-row"><span>Plugged In (Charging)</span><label class="switch"><input type="checkbox" id="toggle-charging" checked><span class="slider"></span></label></div>
                     <div style="margin-top: 20px;"><label>Battery Level: <span id="battery-level-display">85%</span></label><input type="range" id="battery-slider" min="0" max="100" value="85" style="width: 100%; margin-top: 10px;"></div>
-                </div>
-                <div class="settings-pane-content" id="pane-dock">
-                    <h2 style="font-weight: 300; margin-bottom: 20px;">Dock</h2>
-                    <div class="dock-settings-box">
-                        <div class="dock-slider-container">
-                            <span class="dock-slider-title">Size</span>
-                            <div class="dock-slider-row"><div class="dock-slider-track-box"><div class="dock-slider-track"></div><div class="dock-slider-tick" style="left: 0%"></div><div class="dock-slider-tick" style="left: 100%"></div><input type="range" class="dock-slider-input" id="dock-size-slider" min="0" max="100" value="20"></div></div>
-                            <div class="dock-slider-labels"><span>Small</span><span>Large</span></div>
-                        </div>
-                        <div class="dock-slider-container">
-                            <span class="dock-slider-title">Magnification</span>
-                            <div class="dock-slider-row"><div class="dock-slider-track-box"><div class="dock-slider-track"></div><div class="dock-slider-tick" style="left: 0%"></div><div class="dock-slider-tick" style="left: 33%"></div><div class="dock-slider-tick" style="left: 100%"></div><input type="range" class="dock-slider-input" id="dock-magnification-slider" min="0" max="100" value="80"></div></div>
-                            <div class="dock-slider-labels" style="position: relative; height: 12px;"><span style="position: absolute; left: 0;">Off</span><span style="position: absolute; left: 33%; transform: translateX(-50%);">Small</span><span style="position: absolute; right: 0;">Large</span></div>
-                        </div>
-                    </div>
-                    <div class="dock-settings-box">
-                        <div class="dock-position-row">
-                            <span class="dock-position-label">Position on screen</span>
-                            <div class="dock-dropdown-wrapper">
-                                <button class="dock-dropdown-btn" id="dock-position-btn">Bottom</button>
-                                <div class="dock-dropdown-menu" id="dock-position-menu">
-                                    <div class="dock-dropdown-item" data-pos="left">Left</div>
-                                    <div class="dock-dropdown-item active" data-pos="bottom">Bottom</div>
-                                    <div class="dock-dropdown-item" data-pos="right">Right</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="settings-pane-content" id="pane-desktop-settings">
                     <h3 style="font-weight: 500; font-size: 1.1rem;">Desktop Backdrop Wallpaper</h3>
@@ -2001,11 +2052,20 @@ document.querySelectorAll('.settings-nav-item').forEach(item=>{
         if(targetTab==='wifi')document.getElementById('pane-wifi').classList.add('active');
         if(targetTab==='bluetooth')document.getElementById('pane-bluetooth').classList.add('active');
         if(targetTab==='network')document.getElementById('pane-network').classList.add('active');
+        if(targetTab==='vpn')document.getElementById('pane-vpn').classList.add('active');
+        if(targetTab==='battery')document.getElementById('pane-battery').classList.add('active');
+        if(targetTab==='general')document.getElementById('pane-general').classList.add('active');
+        if(targetTab==='accessibility')document.getElementById('pane-accessibility').classList.add('active');
+        if(targetTab==='appearance')document.getElementById('pane-appearance').classList.add('active');
+        if(targetTab==='dock')document.getElementById('pane-dock').classList.add('active');
+        if(targetTab==='displays')document.getElementById('pane-displays').classList.add('active');
+        if(targetTab==='menubar')document.getElementById('pane-menubar').classList.add('active');
+        if(targetTab==='siri')document.getElementById('pane-siri').classList.add('active');
+        if(targetTab==='spotlight')document.getElementById('pane-spotlight').classList.add('active');
         if(targetTab==='notifications')document.getElementById('pane-notifications').classList.add('active');
         if(targetTab==='sound')document.getElementById('pane-sound').classList.add('active');
         if(targetTab==='focus')document.getElementById('pane-focus').classList.add('active');
         if(targetTab==='screen-time')document.getElementById('pane-screen-time').classList.add('active');
-        if(targetTab==='dock')document.getElementById('pane-dock').classList.add('active');
         if(targetTab==='desktop-settings')document.getElementById('pane-desktop-settings').classList.add('active');
     });
 });
@@ -2328,6 +2388,7 @@ paneWallpaperInput.addEventListener('change',(e)=>{
     let wasFsBeforeExpose=[];
     let prevExposeState=[];
     function toggleExpose(force){
+        if (isAppExposeActive) return;
         if (force === false || isExposeActive) {
             isExposeActive = false;
             document.body.classList.remove('expose-active');
@@ -2343,8 +2404,10 @@ paneWallpaperInput.addEventListener('change',(e)=>{
                     if (prev.minimized) {
                         w.classList.add('minimize-anim');
                         w.style.display = 'none';
+                    } else if (w.classList.contains('force-hidden')) {
+                        w.style.display = 'none';
                     } else {
-                        w.style.display = 'flex'; // Fix content load
+                        w.style.display = 'flex'; 
                     }
                 }
                 const xBtn = w.querySelector('.expose-x');
@@ -2355,6 +2418,7 @@ paneWallpaperInput.addEventListener('change',(e)=>{
                 if (wasFsBeforeExpose.includes(w.id)) { w.querySelector('.btn-expand').click(); }
             });
             wasFsBeforeExpose = [];
+            window.dispatchEvent(new Event('resize'));
             return;
         }
 
@@ -2442,7 +2506,6 @@ paneWallpaperInput.addEventListener('change',(e)=>{
         });
     }
     
-    // Inject App Expose Background Overlay
     if (!$('app-expose-bg')) {
         const bg = document.createElement('div');
         bg.id = 'app-expose-bg';
@@ -2456,6 +2519,7 @@ paneWallpaperInput.addEventListener('change',(e)=>{
     let isAppExposeActive = false;
     let prevAppExposeState = [];
     function toggleAppExpose(force) {
+        if (isExposeActive) return;
         if (force === false || isAppExposeActive) {
             isAppExposeActive = false;
             document.body.classList.remove('app-expose-active');
@@ -2471,8 +2535,10 @@ paneWallpaperInput.addEventListener('change',(e)=>{
                     if (prev.minimized) {
                         w.classList.add('minimize-anim');
                         w.style.display = 'none';
+                    } else if (w.classList.contains('force-hidden')) {
+                        w.style.display = 'none';
                     } else {
-                        w.style.display = 'flex'; // Fix content load
+                        w.style.display = 'flex'; 
                     }
                 }
                 const xBtn = w.querySelector('.expose-x');
@@ -2480,6 +2546,7 @@ paneWallpaperInput.addEventListener('change',(e)=>{
                 w.onclick = null;
             });
             prevAppExposeState = [];
+            window.dispatchEvent(new Event('resize'));
             return;
         }
 
@@ -2573,7 +2640,6 @@ paneWallpaperInput.addEventListener('change',(e)=>{
         if (isAppExposeActive && e.target === desktop) toggleAppExpose(false);
     });
 
-    // Add desktop button listener
     document.querySelector('.mc-add-desktop-btn').addEventListener('click', () => {
         const newId = Date.now();
         desktops.push({ id: newId, name: `Desktop ${desktops.length + 1}` });
@@ -2587,7 +2653,6 @@ paneWallpaperInput.addEventListener('change',(e)=>{
         thumbsRow.innerHTML = '';
         
         desktops.forEach(d => {
-            // Name
             const nameEl = document.createElement('div');
             nameEl.className = 'mc-desktop-name' + (d.id === currentDesktop ? ' active' : '');
             nameEl.textContent = d.name;
@@ -2595,7 +2660,6 @@ paneWallpaperInput.addEventListener('change',(e)=>{
             nameEl.addEventListener('click', () => switchDesktop(d.id, true));
             namesRow.appendChild(nameEl);
             
-            // Thumb Wrapper
             const thumbWrapper = document.createElement('div');
             thumbWrapper.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:5px;';
             
@@ -2936,7 +3000,42 @@ paneWallpaperInput.addEventListener('change',(e)=>{
     function addDesktopShortcut(name,url){const shortcut={id:'shortcut_'+Date.now(),name:name,url:url,icon:getFaviconUrl(url)};desktopShortcuts.push(shortcut);localStorage.setItem('os_desktop_shortcuts',JSON.stringify(desktopShortcuts));renderDesktopShortcuts();}
     function renderDesktopShortcuts(){const desktopGridContainer=$('desktop-apps-grid');const cellW=90,cellH=105,gap=15;const itemsPerCol=Math.floor((window.innerHeight-110)/(cellH+gap))||4;const savedPositions=JSON.parse(localStorage.getItem('os_desktop_positions')||'{}');desktopShortcuts.forEach((shortcut)=>{if(document.querySelector(`[data-shortcut-id="${shortcut.id}"]`))return;const wrapper=document.createElement('div');wrapper.className='desktop-item-container';wrapper.setAttribute('data-shortcut-id',shortcut.id);wrapper.setAttribute('data-app-id',shortcut.id);const firstLetter=shortcut.name.charAt(0).toUpperCase();wrapper.innerHTML=`<div class="shortcut-icon-wrapper"><img src="${shortcut.icon}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'shortcut-icon-fallback\\'>${firstLetter}</div>'"></div><div class="desktop-app-label">${shortcut.name}</div>`;let placed=false;if(savedPositions[shortcut.id]){const[col,row]=savedPositions[shortcut.id].split(',').map(Number);if(!gridOccupancyMatrix[`${col},${row}`]){wrapper.style.left=`${col*(cellW+gap)}px`;wrapper.style.top=`${row*(cellH+gap)}px`;gridOccupancyMatrix[`${col},${row}`]=shortcut.id;placed=true;}}if(!placed){for(let col=0;col<10&&!placed;col++){for(let row=0;row<itemsPerCol&&!placed;row++){if(!gridOccupancyMatrix[`${col},${row}`]){wrapper.style.left=`${col*(cellW+gap)}px`;wrapper.style.top=`${row*(cellH+gap)}px`;gridOccupancyMatrix[`${col},${row}`]=shortcut.id;placed=true;}}}}setupDesktopIconDragEvent(wrapper,cellW,cellH,gap);wrapper.addEventListener('click',()=>bringToFront(safariWindow));wrapper.addEventListener('dblclick',()=>{openSafariWithUrl(shortcut.url);bringToFront(safariWindow);});desktopGridContainer.appendChild(wrapper);});}
     function openSafariWithUrl(url){safariWindow.classList.remove('force-hidden');safariWindow.style.display='flex';safariWindow.classList.remove('minimize-anim');safariWindow.classList.add('open');const currentTab=safariTabs.find(t=>t.id===activeSafariTabId);if(currentTab&&!currentTab.url)navigateTo(url);else createNewTab(url);}
-    function setupKeyboardShortcuts(){document.addEventListener('keydown',(e)=>{if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT'){if(!(e.target.id==='calc-display'||e.target.id==='calc-grid'))return;}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='l'){e.preventDefault();toggleLaunchpad();return;}if(e.ctrlKey&&e.key==='ArrowUp'){e.preventDefault();toggleExpose();return;}if(e.ctrlKey&&e.key==='ArrowDown'){e.preventDefault();toggleAppExpose();return;}if(e.ctrlKey&&e.key==='ArrowRight'){const currentIdx=desktops.findIndex(d=>d.id===currentDesktop);if(currentIdx<desktops.length-1){e.preventDefault();switchDesktop(desktops[currentIdx+1].id);}return;}if(e.ctrlKey&&e.key==='ArrowLeft'){const currentIdx=desktops.findIndex(d=>d.id===currentDesktop);if(currentIdx>0){e.preventDefault();switchDesktop(desktops[currentIdx-1].id);}return;}const activeWindow=Array.from(document.querySelectorAll('.window.open:not(.minimize-anim)')).filter(w => w.style.display !== 'none').sort((a,b)=>parseInt(b.style.zIndex||0)-parseInt(a.style.zIndex||0))[0];if(activeWindow&&activeWindow.id==='app-calc-window'){if(/[0-9]/.test(e.key)){e.preventDefault();handleCalcInput('num',e.key);}else if(['+','-','*','/'].includes(e.key)){e.preventDefault();handleCalcInput('op',e.key);}else if(e.key==='.'){e.preventDefault();handleCalcInput('dot');}else if(e.key==='%'){e.preventDefault();handleCalcInput('percent');}else if(e.key==='Enter'||e.key==='='){e.preventDefault();handleCalcInput('equals');}else if(e.key==='Backspace'){e.preventDefault();handleCalcInput('backspace');}else if(e.key==='Escape'){e.preventDefault();handleCalcInput('clear');}return;}if(e.altKey&&e.key.toLowerCase()==='w'){e.preventDefault();if(activeWindow)activeWindow.querySelector('.btn-close')?.click();}else if(e.altKey&&e.key.toLowerCase()==='m'){e.preventDefault();if(activeWindow)activeWindow.querySelector('.btn-minimize')?.click();}else if(e.altKey&&e.key.toLowerCase()==='f'){e.preventDefault();if(activeWindow)activeWindow.querySelector('.btn-expand')?.click();}else if(e.ctrlKey&&(e.key===' '||e.code==='Space')){e.preventDefault();document.getElementById('status-cc-btn').click();}else if(e.ctrlKey&&e.key.toLowerCase()==='t'){if(activeWindow&&activeWindow.id==='app-safari-window'){e.preventDefault();createNewTab();document.getElementById('safari-search-input').focus();}}else if(e.altKey&&e.key==='Tab'){e.preventDefault();const openWins=Array.from(document.querySelectorAll('.window.open:not(.minimize-anim)')).filter(w => w.style.display !== 'none');if(openWins.length>1){openWins.sort((a,b)=>parseInt(a.style.zIndex||0)-parseInt(b.style.zIndex||0));bringToFront(openWins[0]);}}});}
+    function setupKeyboardShortcuts(){
+        const keysPressed = {};
+        document.addEventListener('keydown',(e)=>{
+            if(keysPressed[e.code]) return;
+            keysPressed[e.code] = true;
+
+            if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT'){
+                if(!(e.target.id==='calc-display'||e.target.id==='calc-grid'))return;
+            }
+            if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='l'){e.preventDefault();toggleLaunchpad();return;}
+            if(e.ctrlKey&&e.key==='ArrowUp'){e.preventDefault();toggleExpose();return;}
+            if(e.ctrlKey&&e.key==='ArrowDown'){e.preventDefault();toggleAppExpose();return;}
+            if(e.ctrlKey&&e.key==='ArrowRight'){const currentIdx=desktops.findIndex(d=>d.id===currentDesktop);if(currentIdx<desktops.length-1){e.preventDefault();switchDesktop(desktops[currentIdx+1].id);}return;}
+            if(e.ctrlKey&&e.key==='ArrowLeft'){const currentIdx=desktops.findIndex(d=>d.id===currentDesktop);if(currentIdx>0){e.preventDefault();switchDesktop(desktops[currentIdx-1].id);}return;}
+            const activeWindow=Array.from(document.querySelectorAll('.window.open:not(.minimize-anim)')).filter(w => w.style.display !== 'none').sort((a,b)=>parseInt(b.style.zIndex||0)-parseInt(a.style.zIndex||0))[0];
+            if(activeWindow&&activeWindow.id==='app-calc-window'){
+                if(/[0-9]/.test(e.key)){e.preventDefault();handleCalcInput('num',e.key);}
+                else if(['+','-','*','/'].includes(e.key)){e.preventDefault();handleCalcInput('op',e.key);}
+                else if(e.key==='.'){e.preventDefault();handleCalcInput('dot');}
+                else if(e.key==='%'){e.preventDefault();handleCalcInput('percent');}
+                else if(e.key==='Enter'||e.key==='='){e.preventDefault();handleCalcInput('equals');}
+                else if(e.key==='Backspace'){e.preventDefault();handleCalcInput('backspace');}
+                else if(e.key==='Escape'){e.preventDefault();handleCalcInput('clear');}
+                return;
+            }
+            if(e.altKey&&e.key.toLowerCase()==='w'){e.preventDefault();if(activeWindow)activeWindow.querySelector('.btn-close')?.click();}
+            else if(e.altKey&&e.key.toLowerCase()==='m'){e.preventDefault();if(activeWindow)activeWindow.querySelector('.btn-minimize')?.click();}
+            else if(e.altKey&&e.key.toLowerCase()==='f'){e.preventDefault();if(activeWindow)activeWindow.querySelector('.btn-expand')?.click();}
+            else if(e.ctrlKey&&(e.key===' '||e.code==='Space')){e.preventDefault();document.getElementById('status-cc-btn').click();}
+            else if(e.ctrlKey&&e.key.toLowerCase()==='t'){if(activeWindow&&activeWindow.id==='app-safari-window'){e.preventDefault();createNewTab();document.getElementById('safari-search-input').focus();}}
+            else if(e.altKey&&e.key==='Tab'){e.preventDefault();const openWins=Array.from(document.querySelectorAll('.window.open:not(.minimize-anim)')).filter(w => w.style.display !== 'none');if(openWins.length>1){openWins.sort((a,b)=>parseInt(a.style.zIndex||0)-parseInt(b.style.zIndex||0));bringToFront(openWins[0]);}}
+        });
+        document.addEventListener('keyup',(e)=>{
+            keysPressed[e.code] = false;
+        });
+    }
     
     function createNewWindow(appId) {
         const baseWindow = getTargetWindow(appId);
